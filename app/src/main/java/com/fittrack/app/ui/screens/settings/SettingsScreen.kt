@@ -74,50 +74,53 @@ fun SettingsScreen(
             
             // --- Sección de Interfaz ---
             Text(
-                text = "Interfaz",
+                text = "Personalización",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
-            // Seguir Sistema
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Icon(Icons.Default.BrightnessAuto, contentDescription = null)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Tema del Sistema")
-                }
-                Switch(
-                    checked = isDarkMode == null,
-                    onCheckedChange = { if (it) viewModel.setDarkMode(null) else viewModel.setDarkMode(true) }
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    "Tema de la aplicación",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Forzar Modo Oscuro
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Icon(Icons.Default.DarkMode, contentDescription = null, tint = if (isDarkMode != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        "Modo Oscuro Permanente",
-                        color = if (isDarkMode != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                    )
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Opción: CLARO
+                    SegmentedButton(
+                        selected = isDarkMode == false,
+                        onClick = { viewModel.setDarkMode(false) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+                        icon = { Icon(Icons.Default.LightMode, contentDescription = null) }
+                    ) {
+                        Text("Claro")
+                    }
+                    
+                    // Opción: SISTEMA
+                    SegmentedButton(
+                        selected = isDarkMode == null,
+                        onClick = { viewModel.setDarkMode(null) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+                        icon = { Icon(Icons.Default.BrightnessAuto, contentDescription = null) }
+                    ) {
+                        Text("Auto")
+                    }
+                    
+                    // Opción: OSCURO
+                    SegmentedButton(
+                        selected = isDarkMode == true,
+                        onClick = { viewModel.setDarkMode(true) },
+                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                        icon = { Icon(Icons.Default.DarkMode, contentDescription = null) }
+                    ) {
+                        Text("Oscuro")
+                    }
                 }
-                Switch(
-                    checked = isDarkMode ?: true,
-                    onCheckedChange = { viewModel.setDarkMode(it) },
-                    enabled = isDarkMode != null
-                )
             }
             
             Spacer(modifier = Modifier.height(24.dp))

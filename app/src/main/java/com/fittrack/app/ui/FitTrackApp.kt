@@ -29,12 +29,9 @@ fun FitTrackApp(
 
     FitTrackTheme(darkTheme = isDarkMode) {
         val navController = rememberNavController()
-        Scaffold { innerPadding ->
-            FitTrackNavGraph(
-                navController = navController,
-                startDestination = startDestination,
-                modifier = Modifier.padding(innerPadding)
-            )
-        }
+        FitTrackNavGraph(
+            navController = navController,
+            startDestination = startDestination
+        )
     }
 }
