@@ -23,7 +23,7 @@ data class UserProfile(
     val targetDate: LocalDate? = null,
     val reminderEnabled: Boolean = false,
     val reminderTime: LocalTime? = null,
-    val isDarkMode: Boolean = true,
+    val isDarkMode: Boolean? = null,
     
     val createdAt: LocalDate = LocalDate.now()
 )

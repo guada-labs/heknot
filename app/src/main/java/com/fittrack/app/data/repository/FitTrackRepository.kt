@@ -13,6 +13,7 @@ interface FitTrackRepository {
     fun getUserProfile(): Flow<UserProfile?>
     suspend fun insertOrUpdateUserProfile(userProfile: UserProfile): Long
     suspend fun updateCurrentWeight(weight: Float): Int
+    suspend fun updateDarkMode(enabled: Boolean?): Int
     
     // Weights
     fun getAllWeights(): Flow<List<WeightEntry>>

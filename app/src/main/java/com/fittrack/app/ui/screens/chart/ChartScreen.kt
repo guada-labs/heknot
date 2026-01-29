@@ -35,6 +35,8 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,23 +98,81 @@ fun ChartScreen(
             } else if (uiState.isEmpty) {
                 Text("No hay suficientes datos para mostrar la gráfica.")
             } else {
-                // Gráfica Vico 2.0
+                // Gráfica Vico 2.0 con Estilo Premium
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth().height(300.dp)
                 ) {
+                    val onSurfaceColor = MaterialTheme.colorScheme.onSurface
+                    val primaryColor = MaterialTheme.colorScheme.primary
+                    val secondaryColor = MaterialTheme.colorScheme.secondary
+                    
                     CartesianChartHost(
                         chart = rememberCartesianChart(
-                            rememberLineCartesianLayer(),
-                            startAxis = rememberStartAxis(),
-                            bottomAxis = rememberBottomAxis(valueFormatter = dateValueFormatter)
+                            rememberLineCartesianLayer(
+                                lineProvider = com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineProvider.series(
+                                    com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine(
+                                        fill = com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineFill.single(com.patrykandpatrick.vico.compose.common.fill(primaryColor)),
+                                        thickness = 3.dp
+                                    ),
+                                    com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine(
+                                        fill = com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.LineFill.single(com.patrykandpatrick.vico.compose.common.fill(secondaryColor.copy(alpha = 0.5f))),
+                                        thickness = 2.dp
+                                    )
+                                )
+                            ),
+                            startAxis = rememberStartAxis(
+                                label = com.patrykandpatrick.vico.compose.common.component.rememberTextComponent(
+                                    color = onSurfaceColor
+                                ),
+                                line = com.patrykandpatrick.vico.compose.common.component.rememberLineComponent(color = onSurfaceColor.copy(alpha = 0.2f)),
+                                guideline = com.patrykandpatrick.vico.compose.common.component.rememberLineComponent(color = onSurfaceColor.copy(alpha = 0.05f))
+                            ),
+                            bottomAxis = rememberBottomAxis(
+                                label = com.patrykandpatrick.vico.compose.common.component.rememberTextComponent(
+                                    color = onSurfaceColor
+                                ),
+                                line = com.patrykandpatrick.vico.compose.common.component.rememberLineComponent(color = onSurfaceColor.copy(alpha = 0.2f)),
+                                valueFormatter = dateValueFormatter
+                            )
                         ),
                         modelProducer = viewModel.modelProducer,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
                     )
+                }
+
+                uiState.estimatedDate?.let { date ->
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("✨", style = MaterialTheme.typography.headlineSmall)
+                            Spacer(modifier = Modifier.size(12.dp))
+                            Column {
+                                Text(
+                                    "Llegarás a tu meta el:",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                                Text(
+                                    text = date.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -130,19 +190,34 @@ fun StatCard(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = if (isPositive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp, 
+            if (isPositive) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) 
+            else MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = "$value $params",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    color = if (isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+                Text(
+                    text = " $params",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
         }
     }
 }

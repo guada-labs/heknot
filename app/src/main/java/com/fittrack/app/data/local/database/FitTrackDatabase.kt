@@ -21,7 +21,7 @@ import com.fittrack.app.data.local.database.entity.WorkoutLog
         WorkoutLog::class,
         MealLog::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

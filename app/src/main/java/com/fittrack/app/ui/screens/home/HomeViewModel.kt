@@ -11,6 +11,7 @@ import com.fittrack.app.data.local.database.entity.WorkoutType
 import com.fittrack.app.data.repository.FitTrackRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -40,6 +41,52 @@ class HomeViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    val streak: StateFlow<Int> = combine(
+        repository.getAllWeights(),
+        repository.getAllWorkouts(),
+        repository.getAllMeals()
+    ) { weights, workouts, meals ->
+        val allDates = (weights.map { it.dateTime.toLocalDate() } +
+                        workouts.map { it.dateTime.toLocalDate() } +
+                        meals.map { it.dateTime.toLocalDate() }).toSet().sortedDescending()
+        
+        calculateStreak(allDates)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0
+    )
+
+    private fun calculateStreak(dates: List<LocalDate>): Int {
+        if (dates.isEmpty()) return 0
+        
+        val today = LocalDate.now()
+        val yesterday = today.minusDays(1)
+        
+        if (dates.first() != today && dates.first() != yesterday) return 0
+        
+        var currentStreak = 0
+        var currentCheckDate = dates.first()
+        
+        for (i in dates.indices) {
+            val date = dates[i]
+            if (i == 0) {
+                currentStreak = 1
+                currentCheckDate = date
+            } else {
+                if (date == currentCheckDate.minusDays(1)) {
+                    currentStreak++
+                    currentCheckDate = date
+                } else if (date == currentCheckDate) {
+                    continue
+                } else {
+                    break
+                }
+            }
+        }
+        return currentStreak
+    }
 
     fun logWorkout(type: WorkoutType) {
         viewModelScope.launch {

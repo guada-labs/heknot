@@ -44,7 +44,8 @@ object AppViewModelProvider {
         // Initializer for SettingsViewModel
         initializer {
             SettingsViewModel(
-                fitTrackApplication().container.fitTrackRepository
+                fitTrackApplication().container.fitTrackRepository,
+                fitTrackApplication().container.backupManager
             )
         }
 

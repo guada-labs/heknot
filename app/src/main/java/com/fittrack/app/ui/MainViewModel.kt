@@ -20,4 +20,12 @@ class MainViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null // null = Cargando / Desconocido
         )
+
+    val isDarkMode: StateFlow<Boolean?> = repository.getUserProfile()
+        .map { it?.isDarkMode } // null = seguir sistema
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 }

@@ -19,13 +19,15 @@ fun FitTrackApp(
     viewModel: MainViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val isOnboardedState by viewModel.isUserOnboarded.collectAsState()
+    val userDarkModePref by viewModel.isDarkMode.collectAsState()
+    val isDarkMode = userDarkModePref ?: androidx.compose.foundation.isSystemInDarkTheme()
 
     // Esperar a que se cargue el estado (no mostrar nada o splash si es null)
     if (isOnboardedState == null) return 
 
     val startDestination = if (isOnboardedState == true) Screen.Home.route else Screen.Onboarding.route
 
-    FitTrackTheme {
+    FitTrackTheme(darkTheme = isDarkMode) {
         val navController = rememberNavController()
         Scaffold { innerPadding ->
             FitTrackNavGraph(

@@ -1,18 +1,24 @@
 package com.fittrack.app.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.DoubleArrow
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
@@ -54,6 +60,7 @@ fun HomeScreen(
     val userProfile by viewModel.userProfile.collectAsState()
     val lastWeight by viewModel.lastWeight.collectAsState()
     val todayMeals by viewModel.todayMeals.collectAsState()
+    val streak by viewModel.streak.collectAsState()
     
     var showWeightDialog by remember { mutableStateOf(false) }
     var showMealDialog by remember { mutableStateOf(false) }
@@ -62,14 +69,23 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    Column {
-                        Text("FitTrack", style = MaterialTheme.typography.titleLarge)
-                        userProfile?.let {
-                            Text(
-                                "Hola, ${it.name}", 
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("FitTrack", style = MaterialTheme.typography.titleLarge)
+                            userProfile?.let {
+                                Text(
+                                    "Hola, ${it.name}", 
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        
+                        if (streak > 0) {
+                            com.fittrack.app.ui.components.AnimatedStreakBadge(streak = streak)
                         }
                     }
                 },
@@ -86,8 +102,8 @@ fun HomeScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showWeightDialog = true },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Registrar Peso")
             }
@@ -123,9 +139,22 @@ fun HomeScreen(
         ) {
             // Card de Peso Actual
             item {
+                val startWeight = userProfile?.startWeight ?: 0f
+                val currentWeight = lastWeight?.weight ?: userProfile?.startWeight ?: 0f
+                val targetWeight = userProfile?.targetWeight ?: 0f
+                
+                // Calcular progreso (0.0 a 1.0)
+                val totalToLose = startWeight - targetWeight
+                val progress = if (totalToLose > 0) {
+                    ((startWeight - currentWeight) / totalToLose).coerceIn(0f, 1f)
+                } else {
+                    0f
+                }
+
                 WeightCard(
-                    currentWeight = lastWeight?.weight ?: userProfile?.startWeight ?: 0f,
-                    targetWeight = userProfile?.targetWeight ?: 0f,
+                    currentWeight = currentWeight,
+                    targetWeight = targetWeight,
+                    progress = progress,
                     onClick = onNavigateToChart
                 )
             }
@@ -211,29 +240,74 @@ fun HomeScreen(
 fun WeightCard(
     currentWeight: Float,
     targetWeight: Float,
+    progress: Float,
     onClick: () -> Unit
 ) {
+    Spacer(modifier = Modifier.height(16.dp))
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text("Peso Actual", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
-            Text(
-                "$currentWeight kg", 
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onPrimary
+        Box(modifier = Modifier.padding(20.dp)) {
+            // Icono de flecha en la esquina
+            Icon(
+                imageVector = Icons.Default.DoubleArrow,
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
-            Spacer(modifier = Modifier.size(8.dp))
-            Text(
-                "Meta: $targetWeight kg", 
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = MaterialTheme.typography.bodySmall
-            )
+
+            Column {
+                Text(
+                    "PESO ACTUAL", 
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        "$currentWeight", 
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "kg", 
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 12.dp, start = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth().height(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(
+                        "Meta: $targetWeight kg", 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        "${(progress * 100).toInt()}%", 
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }

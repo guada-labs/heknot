@@ -28,4 +28,7 @@ interface UserProfileDao {
     // Actualizar solo peso actual (Retorna filas afectadas para evitar error KSP)
     @Query("UPDATE user_profile SET currentWeight = :newWeight WHERE id = 1")
     suspend fun updateCurrentWeight(newWeight: Float): Int
+
+    @Query("UPDATE user_profile SET isDarkMode = :enabled WHERE id = 1")
+    suspend fun updateDarkMode(enabled: Boolean?): Int
 }

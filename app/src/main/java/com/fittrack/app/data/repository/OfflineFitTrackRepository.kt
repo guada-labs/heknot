@@ -20,6 +20,9 @@ class OfflineFitTrackRepository(private val database: FitTrackDatabase) : FitTra
     override suspend fun updateCurrentWeight(weight: Float): Int =
         database.userProfileDao().updateCurrentWeight(weight)
 
+    override suspend fun updateDarkMode(enabled: Boolean?): Int =
+        database.userProfileDao().updateDarkMode(enabled)
+
     // --- Weights ---
     override fun getAllWeights(): Flow<List<WeightEntry>> = 
         database.weightDao().getAllWeights()
