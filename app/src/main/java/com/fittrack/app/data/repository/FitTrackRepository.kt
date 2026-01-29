@@ -28,8 +28,12 @@ interface FitTrackRepository {
     suspend fun insertWorkout(workoutLog: WorkoutLog): Long
     suspend fun deleteWorkout(workoutLog: WorkoutLog): Int
     
-    // Meals
+    // --- Meals ---
+    fun getAllMeals(): Flow<List<MealLog>>
     fun getMealsByDate(date: LocalDate): Flow<List<MealLog>>
     suspend fun insertMeal(mealLog: MealLog): Long
     suspend fun deleteMeal(mealLog: MealLog): Int
+
+    // Reset
+    suspend fun resetData()
 }

@@ -53,6 +53,9 @@ class OfflineFitTrackRepository(private val database: FitTrackDatabase) : FitTra
         database.workoutDao().delete(workoutLog)
 
     // --- Meals ---
+    override fun getAllMeals(): Flow<List<MealLog>> =
+        database.mealDao().getAllMeals()
+
     override fun getMealsByDate(date: LocalDate): Flow<List<MealLog>> =
         database.mealDao().getMealsByDate(date)
         
@@ -61,4 +64,10 @@ class OfflineFitTrackRepository(private val database: FitTrackDatabase) : FitTra
         
     override suspend fun deleteMeal(mealLog: MealLog): Int =
         database.mealDao().delete(mealLog)
+
+    override suspend fun resetData() {
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            database.clearAllTables()
+        }
+    }
 }

@@ -6,17 +6,18 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.fittrack.app.ui.screens.chart.ChartScreen
+import com.fittrack.app.ui.screens.history.HistoryScreen
 import com.fittrack.app.ui.screens.home.HomeScreen
 import com.fittrack.app.ui.screens.onboarding.OnboardingScreen
+import com.fittrack.app.ui.screens.settings.SettingsScreen
 
 @Composable
 fun FitTrackNavGraph(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    startDestination: String = Screen.Onboarding.route
 ) {
-    // Determinar destino inicial (luego agregaremos lógica para verificar si ya completó onboarding)
-    val startDestination = Screen.Onboarding.route
-
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -34,19 +35,30 @@ fun FitTrackNavGraph(
         }
         
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(
+                onNavigateToChart = { navController.navigate(Screen.Chart.route) },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToHistory = { navController.navigate(Screen.History.route) }
+            )
         }
         
         composable(Screen.History.route) {
-            Text("History Screen Placeholder")
+            HistoryScreen(onBack = { navController.popBackStack() })
         }
         
         composable(Screen.Chart.route) {
-            Text("Chart Screen Placeholder")
+            ChartScreen(onBack = { navController.popBackStack() })
         }
         
         composable(Screen.Settings.route) {
-            Text("Settings Screen Placeholder")
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onRestartApp = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(0) { inclusive = true } // Limpia todo el stack
+                    }
+                }
+            )
         }
     }
 }

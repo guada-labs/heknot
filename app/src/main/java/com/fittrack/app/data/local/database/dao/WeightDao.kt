@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WeightDao {
     
-    @Query("SELECT * FROM weight_entries ORDER BY date DESC")
+    @Query("SELECT * FROM weight_entries ORDER BY dateTime DESC")
     fun getAllWeights(): Flow<List<WeightEntry>>
     
-    @Query("SELECT * FROM weight_entries ORDER BY date DESC LIMIT :limit")
+    @Query("SELECT * FROM weight_entries ORDER BY dateTime DESC LIMIT :limit")
     fun getRecentWeights(limit: Int): Flow<List<WeightEntry>>
     
-    @Query("SELECT * FROM weight_entries ORDER BY date DESC LIMIT 1")
+    @Query("SELECT * FROM weight_entries ORDER BY dateTime DESC LIMIT 1")
     fun getLastWeight(): Flow<WeightEntry?>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)

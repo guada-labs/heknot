@@ -14,47 +14,64 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class HomeViewModel(
     private val repository: FitTrackRepository
 ) : ViewModel() {
 
-    // Perfil del usuario (Nombre, meta, etc.)
     val userProfile: StateFlow<UserProfile?> = repository.getUserProfile()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
-    // Último peso registrado (para el card principal)
     val lastWeight: StateFlow<WeightEntry?> = repository.getLastWeight()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
-    // Comidas registradas HOY
     val todayMeals: StateFlow<List<MealLog>> = repository.getMealsByDate(LocalDate.now())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    // Registrar un entrenamiento rápido
-    fun logWorkout(type: WorkoutType, durationMinutes: Int = 30) {
+    fun logWorkout(type: WorkoutType) {
         viewModelScope.launch {
-            val log = WorkoutLog(
-                date = LocalDate.now(),
-                type = type,
-                durationMinutes = durationMinutes,
-                completed = true
+            repository.insertWorkout(
+                WorkoutLog(
+                    dateTime = LocalDateTime.now(),
+                    type = type,
+                    durationMinutes = 30, // Default
+                    completed = true
+                )
             )
-            repository.insertWorkout(log)
         }
     }
 
-    // Registrar una comida rápida
-    fun logMeal(type: MealType, description: String) {
+    fun addWeight(weight: Float, dateTime: LocalDateTime) {
+        viewModelScope.launch {
+            repository.insertWeight(WeightEntry(weight = weight, dateTime = dateTime))
+            repository.updateCurrentWeight(weight)
+        }
+    }
+    
+    fun logMeal(type: MealType, description: String, calories: Int? = null) {
         viewModelScope.launch {
             if (description.isBlank()) return@launch
-            
-            val log = MealLog(
-                date = LocalDate.now(),
-                type = type,
-                description = description
+            repository.insertMeal(
+                MealLog(
+                    dateTime = LocalDateTime.now(),
+                    type = type,
+                    description = description,
+                    calories = calories
+                )
             )
-            repository.insertMeal(log)
         }
     }
 }

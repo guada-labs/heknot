@@ -10,6 +10,7 @@ import com.fittrack.app.data.local.database.entity.WeightEntry
 import com.fittrack.app.data.repository.FitTrackRepository
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class OnboardingViewModel(
     private val repository: FitTrackRepository
@@ -63,7 +64,7 @@ class OnboardingViewModel(
             // 2. Crear primer registro de peso
             val initialWeightEntry = WeightEntry(
                 weight = currentWeightFloat,
-                date = LocalDate.now(),
+                dateTime = LocalDateTime.now(),
                 note = "Inicio del viaje 💪"
             )
             repository.insertWeight(initialWeightEntry)

@@ -13,11 +13,11 @@ import java.time.LocalDate
 @Dao
 interface MealDao {
     
-    @Query("SELECT * FROM meal_logs ORDER BY date DESC, type ASC")
+    @Query("SELECT * FROM meal_logs ORDER BY dateTime DESC")
     fun getAllMeals(): Flow<List<MealLog>>
     
-    // Obtener comidas de hoy
-    @Query("SELECT * FROM meal_logs WHERE date = :date ORDER BY type ASC")
+    // Obtener comidas de un día específico
+    @Query("SELECT * FROM meal_logs WHERE date(dateTime) = :date ORDER BY dateTime ASC")
     fun getMealsByDate(date: LocalDate): Flow<List<MealLog>>
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)

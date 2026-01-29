@@ -13,15 +13,16 @@ import java.time.LocalDate
 @Dao
 interface WorkoutDao {
     
-    @Query("SELECT * FROM workout_logs ORDER BY date DESC")
+    @Query("SELECT * FROM workout_logs ORDER BY dateTime DESC")
     fun getAllWorkouts(): Flow<List<WorkoutLog>>
     
     // Obtener workouts de un rango de fechas (para gráficas/rachas)
-    @Query("SELECT * FROM workout_logs WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    // Usamos date() de SQLite para comparar solo la fecha del dateTime
+    @Query("SELECT * FROM workout_logs WHERE date(dateTime) BETWEEN :startDate AND :endDate ORDER BY dateTime DESC")
     fun getWorkoutsBetween(startDate: LocalDate, endDate: LocalDate): Flow<List<WorkoutLog>>
     
     // Verificar si hizo ejercicio hoy
-    @Query("SELECT COUNT(*) FROM workout_logs WHERE date = :date")
+    @Query("SELECT COUNT(*) FROM workout_logs WHERE date(dateTime) = :date")
     suspend fun getWorkoutCountByDate(date: LocalDate): Int
     
     @Insert(onConflict = OnConflictStrategy.REPLACE)

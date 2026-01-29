@@ -6,18 +6,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,58 +26,94 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.fittrack.app.data.local.database.entity.MealType
 import com.fittrack.app.data.local.database.entity.WorkoutType
 import com.fittrack.app.ui.AppViewModelProvider
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.fittrack.app.ui.components.AddMealDialog
+import com.fittrack.app.ui.components.AddWeightDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    onNavigateToChart: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToHistory: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val lastWeight by viewModel.lastWeight.collectAsState()
     val todayMeals by viewModel.todayMeals.collectAsState()
+    
+    var showWeightDialog by remember { mutableStateOf(false) }
+    var showMealDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
+                title = { 
                     Column {
-                        Text(
-                            text = "Hola, ${userProfile?.name ?: "Atleta"}",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMM")),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text("FitTrack", style = MaterialTheme.typography.titleLarge)
+                        userProfile?.let {
+                            Text(
+                                "Hola, ${it.name}", 
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Navigate to Profile */ }) {
+                    IconButton(onClick = onNavigateToHistory) {
+                        Icon(Icons.Default.History, contentDescription = "Historial")
+                    }
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Person, contentDescription = "Perfil")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showWeightDialog = true },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Registrar Peso")
+            }
         }
     ) { innerPadding ->
+        
+        if (showWeightDialog) {
+            AddWeightDialog(
+                onDismiss = { showWeightDialog = false },
+                onConfirm = { dateTime, weight ->
+                    viewModel.addWeight(weight, dateTime)
+                    showWeightDialog = false
+                }
+            )
+        }
+
+        if (showMealDialog) {
+            AddMealDialog(
+                onDismiss = { showMealDialog = false },
+                onConfirm = { type, description ->
+                    viewModel.logMeal(type, description)
+                    showMealDialog = false
+                }
+            )
+        }
+
         LazyColumn(
             modifier = modifier
                 .fillMaxSize()
@@ -87,153 +121,164 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Seccion 1: Resumen de Peso
+            // Card de Peso Actual
             item {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Peso Actual",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Row(
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            Text(
-                                text = "${lastWeight?.weight ?: "--"}",
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Spacer(modifier = Modifier.size(4.dp))
-                            Text(
-                                text = "kg",
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(bottom = 8.dp),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                        
-                        userProfile?.let { profile ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "Meta: ${profile.targetWeight} kg",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                }
+                WeightCard(
+                    currentWeight = lastWeight?.weight ?: userProfile?.startWeight ?: 0f,
+                    targetWeight = userProfile?.targetWeight ?: 0f,
+                    onClick = onNavigateToChart
+                )
             }
 
-            // Seccion 2: Acciones Rápidas (Registrar Ejercicio)
+            // Acciones Rápidas
             item {
                 Text(
-                    text = "Registrar Actividad",
+                    "Accesos Rápidos", 
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    fontWeight = FontWeight.Bold
                 )
+            }
+
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Botón Caminata
-                    Button(
-                        onClick = { viewModel.logWorkout(WorkoutType.WALK, 30) },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Default.ArrowForward, contentDescription = null)
-                        Spacer(Modifier.size(8.dp))
-                        Text("Caminata")
-                    }
-                    
-                    // Botón Gym/Casa
-                    Button(
-                        onClick = { viewModel.logWorkout(WorkoutType.HOME, 45) },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Default.Home, contentDescription = null) // Placeholder icon
-                        Spacer(Modifier.size(8.dp))
-                        Text("Rutina")
-                    }
+                    QuickActionCard(
+                        title = "Caminata",
+                        icon = Icons.Default.DirectionsWalk,
+                        modifier = Modifier.weight(1f),
+                        onClick = { viewModel.logWorkout(WorkoutType.WALK) }
+                    )
+                    QuickActionCard(
+                        title = "Rutina",
+                        icon = Icons.Default.FitnessCenter,
+                        modifier = Modifier.weight(1f),
+                        onClick = { viewModel.logWorkout(WorkoutType.HOME) }
+                    )
                 }
             }
 
-            // Seccion 3: Comidas de Hoy
+            // Comidas de Hoy
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Comidas de Hoy",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    IconButton(onClick = { viewModel.logMeal(MealType.SNACK, "Snack Rápido") }) {
-                        Icon(Icons.Default.Add, contentDescription = "Agregar Comida")
-                    }
-                }
-            }
-            
-            if (todayMeals.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "No has registrado comidas hoy",
-                            modifier = Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.bodyMedium
+                            "Comidas de Hoy", 
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
-                    }
-                }
-            } else {
-                items(todayMeals) { meal ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        IconButton(onClick = { showMealDialog = true }) {
                             Icon(
-                                imageVector = Icons.Default.Favorite,
-                                contentDescription = null,
+                                Icons.Default.Add, 
+                                contentDescription = "Agregar Comida",
                                 tint = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.size(16.dp))
-                            Column {
-                                Text(
-                                    text = meal.type.name,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = meal.description,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
                         }
                     }
+                    Text(
+                        "${todayMeals.size} registros",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
-            
-            // Espacio final para scroll
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+
+            if (todayMeals.isEmpty()) {
+                item {
+                    Text(
+                        "No has registrado comidas aún.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            items(todayMeals) { meal ->
+                MealItem(meal)
+            }
+
+            // Espacio para que el FAB no tape contenido
+            item { Spacer(modifier = Modifier.size(80.dp)) }
+        }
+    }
+}
+
+@Composable
+fun WeightCard(
+    currentWeight: Float,
+    targetWeight: Float,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        )
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text("Peso Actual", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
+            Text(
+                "$currentWeight kg", 
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                "Meta: $targetWeight kg", 
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickActionCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(32.dp))
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(title, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+fun MealItem(meal: com.fittrack.app.data.local.database.entity.MealLog) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(meal.type.name, fontWeight = FontWeight.Bold)
+                Text(meal.description, style = MaterialTheme.typography.bodySmall)
+            }
+            if (meal.calories != null) {
+                Text("Cal: ${meal.calories}", style = MaterialTheme.typography.labelSmall)
+            }
         }
     }
 }

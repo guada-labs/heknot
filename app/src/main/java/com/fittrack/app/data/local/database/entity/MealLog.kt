@@ -2,7 +2,6 @@ package com.fittrack.app.data.local.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 enum class MealType {
@@ -18,12 +17,10 @@ data class MealLog(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     
-    val date: LocalDate,
+    val dateTime: LocalDateTime = LocalDateTime.now(),
     val type: MealType,
-    val description: String, // Texto libre: "Arroz con pollo"
+    val description: String,
     
-    val calories: Int? = null, // Para Fase 3 (IA)
-    val protein: Int? = null,  // Para futuro
-    
-    val timestamp: LocalDateTime = LocalDateTime.now()
+    val calories: Int? = null,
+    val protein: Int? = null
 )
