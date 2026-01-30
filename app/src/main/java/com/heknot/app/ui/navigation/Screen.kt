@@ -12,4 +12,12 @@ sealed class Screen(val route: String, val label: String = "", val icon: ImageVe
     data object Chart : Screen("chart", "Estadísticas", Icons.Default.BarChart)
     data object Settings : Screen("settings", "Ajustes", Icons.Default.Settings)
     data object History : Screen("history")
+    
+    // Nutrition Sub-screens
+    data object RecipeForm : Screen("recipe_form?id={id}") {
+        fun createRoute(id: Long? = null) = if (id != null) "recipe_form?id=$id" else "recipe_form"
+    }
+    data object RecipeDetail : Screen("recipe_detail/{id}") {
+        fun createRoute(id: Long) = "recipe_detail/$id"
+    }
 }

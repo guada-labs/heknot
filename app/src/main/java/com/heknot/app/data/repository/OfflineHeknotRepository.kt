@@ -77,6 +77,15 @@ class OfflineHeknotRepository(private val database: HeknotDatabase) : HeknotRepo
 
     override fun getTotalCaloriesConsumedByDate(date: LocalDate): Flow<Int?> =
         database.mealDao().getTotalCaloriesByDate(date)
+
+    override fun getTotalProteinByDate(date: LocalDate): Flow<Float?> =
+        database.mealDao().getTotalProteinByDate(date)
+
+    override fun getTotalCarbsByDate(date: LocalDate): Flow<Float?> =
+        database.mealDao().getTotalCarbsByDate(date)
+
+    override fun getTotalFatByDate(date: LocalDate): Flow<Float?> =
+        database.mealDao().getTotalFatByDate(date)
         
     override suspend fun insertMeal(mealLog: MealLog): Long =
         database.mealDao().insert(mealLog)

@@ -8,6 +8,7 @@ import com.heknot.app.HeknotApplication
 import com.heknot.app.ui.screens.chart.ChartViewModel
 import com.heknot.app.ui.screens.home.HomeViewModel
 import com.heknot.app.ui.screens.history.HistoryViewModel
+import com.heknot.app.ui.screens.nutrition.NutritionViewModel
 import com.heknot.app.ui.screens.onboarding.OnboardingViewModel
 import com.heknot.app.ui.screens.settings.SettingsViewModel
 import com.heknot.app.ui.screens.workout.WorkoutViewModel
@@ -60,6 +61,13 @@ object AppViewModelProvider {
         // Initializer for HistoryViewModel
         initializer {
             HistoryViewModel(
+                HeknotApplication().container.HeknotRepository
+            )
+        }
+
+        // Initializer for NutritionViewModel
+        initializer {
+            NutritionViewModel(
                 HeknotApplication().container.HeknotRepository
             )
         }

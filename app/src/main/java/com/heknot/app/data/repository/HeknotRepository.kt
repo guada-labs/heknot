@@ -40,6 +40,9 @@ interface HeknotRepository {
     fun getAllMeals(): Flow<List<MealLog>>
     fun getMealsByDate(date: LocalDate): Flow<List<MealLog>>
     fun getTotalCaloriesConsumedByDate(date: LocalDate): Flow<Int?>
+    fun getTotalProteinByDate(date: LocalDate): Flow<Float?>
+    fun getTotalCarbsByDate(date: LocalDate): Flow<Float?>
+    fun getTotalFatByDate(date: LocalDate): Flow<Float?>
     suspend fun insertMeal(mealLog: MealLog): Long
     suspend fun deleteMeal(mealLog: MealLog): Int
 
