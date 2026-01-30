@@ -5,10 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 android {
-    namespace = "com.fittrack.app"
+    namespace = "com.heknot.app"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.fittrack.app"
+        applicationId = "com.heknot.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -66,6 +66,7 @@ dependencies {
     // Navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.gson)
 
     // Testing
     testImplementation(libs.junit)
@@ -80,5 +81,6 @@ dependencies {
 }
 
 ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.generateKotlin", "true")
 }

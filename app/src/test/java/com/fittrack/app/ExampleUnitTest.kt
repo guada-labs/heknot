@@ -1,4 +1,4 @@
-package com.fittrack.app
+package com.heknot.app
 
 import org.junit.Test
 

@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FitTrack"
+rootProject.name = "heknot"
 include(":app")

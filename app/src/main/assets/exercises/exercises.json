@@ -1,0 +1,38 @@
+[
+  {
+    "id": "push_up",
+    "name": "Flexiones de Pecho",
+    "category": "Pecho",
+    "difficulty": "Intermedio",
+    "instructions": "Coloca las manos a la altura de los hombros, baja el cuerpo manteniendo la espalda recta y empuja hacia arriba.",
+    "caloriesPerMinute": 8.0,
+    "primaryMuscles": ["Pectorales", "Tríceps", "Deltoides"]
+  },
+  {
+    "id": "squat",
+    "name": "Sentadillas",
+    "category": "Piernas",
+    "difficulty": "Básico",
+    "instructions": "Baja la cadera como si te fueras a sentar, manteniendo la espalda recta y los talones apoyados.",
+    "caloriesPerMinute": 7.0,
+    "primaryMuscles": ["Cuádriceps", "Glúteos", "Isquios"]
+  },
+  {
+    "id": "plank",
+    "name": "Plancha Abdominal",
+    "category": "Core",
+    "difficulty": "Básico",
+    "instructions": "Mantén el cuerpo recto apoyado en los antebrazos y las puntas de los pies durante el mayor tiempo posible.",
+    "caloriesPerMinute": 4.0,
+    "primaryMuscles": ["Abdominales", "Lumbares"]
+  },
+  {
+    "id": "pull_up",
+    "name": "Dominadas",
+    "category": "Espalda",
+    "difficulty": "Avanzado",
+    "instructions": "Cuélgate de una barra y tira de tu cuerpo hacia arriba hasta que la barbilla pase la barra.",
+    "caloriesPerMinute": 9.0,
+    "primaryMuscles": ["Dorsales", "Bíceps"]
+  }
+]
