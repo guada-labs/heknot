@@ -267,15 +267,14 @@ fun StylizedParticleFlame(
     modifier: Modifier = Modifier,
     intensity: Float = 0.5f // 0.0 to 1.0
 ) {
-    // 1. Smooth intensity to avoid jitter on data updates
+    // 1. Smooth intensity to avoid sudden jumps in size/color
     val animatedIntensity by animateFloatAsState(
         targetValue = intensity.coerceIn(0f, 1f),
         animationSpec = tween(1200),
-        label = "soft_intensity"
+        label = "flame_intensity"
     )
 
-    // 2. Manual Phase for PERFECT continuity (Fixes the "jump" or stutter)
-    // LaunchedEffect ensures it keeps running without resetting on recomposition
+    // 2. Manual Phase for PERFECT continuity
     var phase by remember { mutableStateOf(0f) }
     LaunchedEffect(Unit) {
         var lastTime = withFrameNanos { it }
@@ -283,25 +282,25 @@ fun StylizedParticleFlame(
             withFrameNanos { time ->
                 val dt = (time - lastTime) / 1_000_000_000f
                 lastTime = time
-                // Base speed (2.0) + dynamic speed based on intensity (up to 4.5 extra)
-                val speed = 2.0f + (4.5f * animatedIntensity)
+                // Speed varies from 2.0 rad/s to 5.5 rad/s
+                val speed = 2.0f + (3.5f * animatedIntensity)
                 phase += dt * speed
             }
         }
     }
 
-    // Scaling: 0.75x to 1.1x
-    val scaleMultiplier = 0.75f + (0.35f * animatedIntensity)
+    // Scaling: Compact and ergonomic
+    val scaleMultiplier = 0.8f + (0.3f * animatedIntensity)
 
-    // Particles (simple transition is fine as they reset independently)
+    // Particles (simple transition is fine here)
     val infiniteTransition = rememberInfiniteTransition(label = "flame_particles")
-    val particleCount = if (animatedIntensity > 0.7f) 8 else 4
+    val particleCount = if (animatedIntensity > 0.7f) 10 else 5
     val particleProgress = List(particleCount) { i ->
         infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
-                animation = tween(1800 + i * 150, easing = LinearEasing),
+                animation = tween(1500 + i * 150, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "p$i"
@@ -314,48 +313,69 @@ fun StylizedParticleFlame(
         val w = size.width
         val h = size.height
         val centerX = w / 2f
-        val baseLineY = h * 0.92f
+        val baseLineY = h * 0.95f
 
+        // 3. INTERNAL PHYSICS: "Sway" and "Lick" effect
+        // The top of the flame sways more than the base
         fun drawFlameTongue(widthScale: Float, heightScale: Float, color: Color, xOffset: Float, pShift: Float = 0f) {
             val fw = w * widthScale
-            // Height oscillation is also continuous
-            val fh = h * (heightScale + sin(phase + pShift) * 0.08f * animatedIntensity)
+            val currentFh = h * (heightScale + sin(phase * 1.1f + pShift) * 0.05f * animatedIntensity)
+            
+            // Sway calculation: the air makes the flame lick side to side
+            val lateralSway = sin(phase * 0.8f + pShift) * (w * 0.15f * animatedIntensity)
+            val tipX = centerX + xOffset + lateralSway
+            val tipY = baseLineY - currentFh
+
             val path = Path().apply {
-                moveTo(centerX + xOffset, baseLineY - fh)
+                moveTo(tipX, tipY)
+                // Right Curve (bending with sway)
                 cubicTo(
-                    centerX + xOffset + fw * 0.65f, baseLineY - fh * 0.35f,
-                    centerX + xOffset + fw * 0.5f, baseLineY,
+                    centerX + xOffset + fw * 0.6f + lateralSway * 0.4f, baseLineY - currentFh * 0.4f,
+                    centerX + xOffset + fw * 0.45f, baseLineY,
                     centerX + xOffset, baseLineY
                 )
+                // Left Curve (bending with sway)
                 cubicTo(
-                    centerX + xOffset - fw * 0.5f, baseLineY,
-                    centerX + xOffset - fw * 0.65f, baseLineY - fh * 0.35f,
-                    centerX + xOffset, baseLineY - fh
+                    centerX + xOffset - fw * 0.45f, baseLineY,
+                    centerX + xOffset - fw * 0.6f + lateralSway * 0.4f, baseLineY - currentFh * 0.4f,
+                    tipX, tipY
                 )
             }
             drawPath(path = path, color = color)
         }
 
-        // --- Double Tongue Effect (Juntos horizontalmente - Gap reducido) ---
-        val gap = 4.dp.toPx() * (0.5f + 0.5f * animatedIntensity)
+        // 4. SOFT GLOW: Pulse an aura behind the flame
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(flameColors.outer.copy(alpha = 0.3f), Color.Transparent),
+                center = Offset(centerX, baseLineY - h * 0.4f),
+                radius = w * (0.6f + 0.2f * animatedIntensity)
+            ),
+            radius = w * (0.6f + 0.2f * animatedIntensity),
+            center = Offset(centerX, baseLineY - h * 0.4f)
+        )
+
+        // --- Layers ---
+        val gap = 3.dp.toPx() * (0.6f + 0.4f * animatedIntensity)
 
         // Layer 1: Outer
-        drawFlameTongue(0.65f, 0.85f, flameColors.outer, -gap, 0f)
-        drawFlameTongue(0.65f, 0.85f, flameColors.outer, gap, 1.2f)
+        drawFlameTongue(0.68f, 0.82f, flameColors.outer, -gap, 0f)
+        drawFlameTongue(0.68f, 0.82f, flameColors.outer, gap, 1.3f)
 
         // Layer 2: Middle
-        drawFlameTongue(0.48f, 0.65f, flameColors.mid, -gap * 0.6f, 0.6f)
-        drawFlameTongue(0.48f, 0.65f, flameColors.mid, gap * 0.6f, 2.0f)
+        drawFlameTongue(0.48f, 0.62f, flameColors.mid, -gap * 0.5f, 0.7f)
+        drawFlameTongue(0.48f, 0.62f, flameColors.mid, gap * 0.5f, 2.1f)
 
-        // Layer 3: Inner
-        drawFlameTongue(0.32f, 0.4f, flameColors.inner, 0f, 3.5f)
+        // Layer 3: Inner Core
+        drawFlameTongue(0.32f, 0.38f, flameColors.inner, 0f, 3.6f)
 
-        // --- Particles ---
+        // --- Particles (Sparks) following the sway ---
         particleProgress.forEachIndexed { index, progress ->
-            val pX = centerX + sin(phase * 0.5f + index) * (w * (0.15f + 0.23f * animatedIntensity))
-            val pY = baseLineY - (progress.value * h * (1.1f + 0.1f * animatedIntensity))
+            val pSway = sin(phase * 0.6f + index) * (w * (0.15f + 0.2f * animatedIntensity))
+            val pX = centerX + pSway
+            val pY = baseLineY - (progress.value * h * (1.15f))
             val pAlpha = (1f - progress.value) * (0.4f + 0.6f * animatedIntensity)
-            val pSize = (1f - progress.value) * (3f + 4f * animatedIntensity)
+            val pSize = (1f - progress.value) * (2.5f + 4f * animatedIntensity)
 
             if (pY < baseLineY - 5f) {
                 drawCircle(
@@ -401,11 +421,11 @@ private fun getFlameColors(intensity: Float): FlamePalette {
             )
         }
         else -> {
-            // Super Intense: White & Blue
+            // Super Intense: White & Blue (Electric Cyan/White)
             val f = (intensity - 0.85f) / 0.15f
             FlamePalette(
                 outer = lerpColor(Color(0xFFFFD726), Color(0xFF006CF0), f),
-                mid = lerpColor(Color(0xFFFFFFFF), Color(0xFF00BCD4), f),
+                mid = lerpColor(Color(0xFFFFFFFF), Color(0xFF00E5FF), f),
                 inner = lerpColor(Color(0xFFFFFFFF), Color(0xFFE0F7FA), f)
             )
         }
