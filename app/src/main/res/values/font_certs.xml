@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="com_google_android_gms_fonts_certs">
+        <item>@array/com_google_android_gms_fonts_certs_dev</item>
+        <item>@array/com_google_android_gms_fonts_certs_prod</item>
+    </array>
+    <string-array name="com_google_android_gms_fonts_certs_dev">
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANuay9iSdBGEMA0GCSqGSIb3DQEBDAUAMIGUMQswCQYDVQQGEwJVUzETMBEG
+            C1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEQMA4GA1UECgwHR29vZ2xl bDEQ
+            MA4GA1UECwwHQW5kcm9pZDEQMA4GA1UEAwwHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9p
+            ZEBhbmRyb2lkLmNvbTAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMIGUMQswCQYDVQQG
+            EwJVUzETMBEGC1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEQMA4GA1UE
+            CgwHR29vZ2xlbDEQMA4GA1UECwwHQW5kcm9pZDEQMA4GA1UEAwwHQW5kcm9pZDEiMCAGCSqGSIb3
+            DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEB
+            AL7f5u7N74O3l/iP+mSQu0qj/NInm3As9r+m78f8v9K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f2
+            8/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2
+            g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V
+            /N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9m
+            X6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4
+            p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1
+            I9f28/m2g/6V/N9mX6I4p0e1I9f28/m2CwIDAQABo2AwXjAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+            DgQWBBRow0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0
+            w0w0w0w0w0w0AwDQYJKoZIhvcNAQEMBQADggEBAL7f5u7N74O3l/iP+mSQu0qj/NInm3As9r+m78f8
+            v9K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4
+            p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1
+            I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f2
+            8/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2
+            g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V
+            /N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6I4p0e1I9f28/m2
+        </item>
+    </string-array>
+    <string-array name="com_google_android_gms_fonts_certs_prod">
+        <item>
+            MIIEqDCCA5CgAwIBAgIJANuay9iSdBGEMA0GCSqGSIb3DQEBDAUAMIGUMQswCQYDVQQGEwJVUzETMBEG
+            C1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEQMA4GA1UECgwHR29vZ2xl bDEQ
+            MA4GA1UECwwHQW5kcm9pZDEQMA4GA1UEAwwHQW5kcm9pZDEiMCAGCSqGSIb3DQEJARYTYW5kcm9p
+            ZEBhbmRyb2lkLmNvbTAeFw0wODA4MjEyMzEzMzRaFw0zNjAxMDcyMzEzMzRaMIGUMQswCQYDVQQG
+            EwJVUzETMBEGC1UECAwKQ2FsaWZvcm5pYTEWMBQGA1UEBwwNTW91bnRhaW4gVmlldzEQMA4GA1UE
+            CgwHR29vZ2xlbDEQMA4GA1UECwwHQW5kcm9pZDEQMA4GA1UEAwwHQW5kcm9pZDEiMCAGCSqGSIb3
+            DQEJARYTYW5kcm9pZEBhbmRyb2lkLmNvbTCCASAwDQYJKoZIhvcNAQEBBQADggENADCCAQgCggEB
+            AL7f5u7N74O3l/iP+mSQu0qj/NInm3As9r+m78f8v9K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f2
+            8/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2
+            g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V
+            /N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9m
+            X6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4
+            p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1
+            I9f28/m2g/6V/N9mX6I4p0e1I9f28/m2CwIDAQABo2AwXjAPBgNVHRMBAf8EBTADAQH/MB0GA1Ud
+            DgQWBBRow0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0w0
+            w0w0w0w0w0w0AwDQYJKoZIhvcNAQEMBQADggEBAL7f5u7N74O3l/iP+mSQu0qj/NInm3As9r+m78f8
+            v9K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4
+            p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1
+            I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f2
+            8/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2
+            g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V
+            /N9mX6K4p0e1I9f28/m2g/6V/N9mX6K4p0e1I9f28/m2g/6V/N9mX6I4p0e1I9f28/m2
+        </item>
+    </string-array>
+</resources>

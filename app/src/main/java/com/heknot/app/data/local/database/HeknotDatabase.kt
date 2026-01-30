@@ -21,7 +21,7 @@ import com.heknot.app.data.local.database.entity.WorkoutLog
         WorkoutLog::class,
         MealLog::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -43,7 +43,8 @@ abstract class HeknotDatabase : RoomDatabase() {
                     HeknotDatabase::class.java,
                     "heknot_database"
                 )
-                .fallbackToDestructiveMigration() // Fallback por si hay otras migraciones faltantes
+                .addMigrations(Migrations.MIGRATION_7_8)
+                .fallbackToDestructiveMigration() // Fallback if other migrations are missing
                 .build()
                 .also { Instance = it }
             }

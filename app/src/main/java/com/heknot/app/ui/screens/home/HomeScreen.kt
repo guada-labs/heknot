@@ -59,8 +59,28 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.aspectRatio
+
+private val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = com.heknot.app.R.array.com_google_android_gms_fonts_certs
+)
+
+private val logoFont = GoogleFont("Comfortaa")
+private val pixelFont = GoogleFont("Press Start 2P")
+
+private val logoFontFamily = FontFamily(
+    Font(googleFont = logoFont, fontProvider = provider)
+)
+
+private val pixelFontFamily = FontFamily(
+    Font(googleFont = pixelFont, fontProvider = provider)
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,18 +112,19 @@ fun HomeScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "heknot", 
+                                "Heknot", 
                                 style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Black,
+                                    fontFamily = logoFontFamily, // Cambia por pixelFontFamily si prefieres el estilo retro
+                                    fontWeight = FontWeight.Bold,
                                     letterSpacing = (-0.5).sp
                                 ),
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.primary
                             )
                             userProfile?.let {
                                 Text(
                                     "Hola, ${it.name}", 
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -478,11 +499,14 @@ fun CalorieBalanceCard(
                     )
                 }
 
-                // Columna derecha: Solo Llama Grande
+                // Columna derecha: Llama dinámica basada en el esfuerzo
                 Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
+                    val burnIntensity = (balance.burned / 1000f).coerceIn(0f, 1f)
                     Box(contentAlignment = Alignment.Center) {
-                        // Llama animada grande y libre (sin círculo)
-                        com.heknot.app.ui.components.StylizedParticleFlame(modifier = Modifier.size(72.dp))
+                        com.heknot.app.ui.components.StylizedParticleFlame(
+                            modifier = Modifier.size(72.dp),
+                            intensity = burnIntensity
+                        )
                     }
                 }
             }

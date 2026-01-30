@@ -263,96 +263,103 @@ fun AnimatedStreakBadge(streak: Int) {
 }
 
 @Composable
-fun StylizedParticleFlame(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "flame_system")
-
-    // --- Animaciones de la Llama ---
-    val phase by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f * Math.PI.toFloat(),
-        animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)),
-        label = "phase"
+fun StylizedParticleFlame(
+    modifier: Modifier = Modifier,
+    intensity: Float = 0.5f // 0.0 to 1.0
+) {
+    // 1. Smooth intensity to avoid jitter on data updates
+    val animatedIntensity by animateFloatAsState(
+        targetValue = intensity.coerceIn(0f, 1f),
+        animationSpec = tween(1200),
+        label = "soft_intensity"
     )
 
-    // --- Animación de Partículas (Sparks) ---
-    val particleProgress = List(5) { i ->
+    // 2. Manual Phase for PERFECT continuity (Fixes the "jump" or stutter)
+    // LaunchedEffect ensures it keeps running without resetting on recomposition
+    var phase by remember { mutableStateOf(0f) }
+    LaunchedEffect(Unit) {
+        var lastTime = withFrameNanos { it }
+        while (true) {
+            withFrameNanos { time ->
+                val dt = (time - lastTime) / 1_000_000_000f
+                lastTime = time
+                // Base speed (2.0) + dynamic speed based on intensity (up to 4.5 extra)
+                val speed = 2.0f + (4.5f * animatedIntensity)
+                phase += dt * speed
+            }
+        }
+    }
+
+    // Scaling: 0.75x to 1.1x
+    val scaleMultiplier = 0.75f + (0.35f * animatedIntensity)
+
+    // Particles (simple transition is fine as they reset independently)
+    val infiniteTransition = rememberInfiniteTransition(label = "flame_particles")
+    val particleCount = if (animatedIntensity > 0.7f) 8 else 4
+    val particleProgress = List(particleCount) { i ->
         infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
-                animation = tween(1200 + (i * 150), easing = LinearEasing),
+                animation = tween(1800 + i * 150, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "p$i"
         )
     }
 
-    Canvas(modifier = modifier) {
+    val flameColors = getFlameColors(animatedIntensity)
+
+    Canvas(modifier = modifier.scale(scaleMultiplier)) {
         val w = size.width
         val h = size.height
         val centerX = w / 2f
-        val baseLineY = h * 0.85f // Base común para todas las capas
+        val baseLineY = h * 0.92f
 
-        // 1. DIBUJAR CAPAS DE LLAMA (COLORES SÓLIDOS ALINEADOS A LA BASE)
-        fun drawFlameLayer(widthScale: Float, heightScale: Float, color: Color, xOffset: Float) {
+        fun drawFlameTongue(widthScale: Float, heightScale: Float, color: Color, xOffset: Float, pShift: Float = 0f) {
             val fw = w * widthScale
-            val fh = h * heightScale
+            // Height oscillation is also continuous
+            val fh = h * (heightScale + sin(phase + pShift) * 0.08f * animatedIntensity)
             val path = Path().apply {
-                // Empezar en la punta
                 moveTo(centerX + xOffset, baseLineY - fh)
-                
-                // Curva derecha bajando hasta la base central
                 cubicTo(
-                    centerX + fw * 0.6f + xOffset, baseLineY - fh * 0.4f,
-                    centerX + fw * 0.4f + xOffset, baseLineY,
+                    centerX + xOffset + fw * 0.65f, baseLineY - fh * 0.35f,
+                    centerX + xOffset + fw * 0.5f, baseLineY,
                     centerX + xOffset, baseLineY
                 )
-                
-                // Curva izquierda subiendo hasta la punta
                 cubicTo(
-                    centerX - fw * 0.4f + xOffset, baseLineY,
-                    centerX - fw * 0.6f + xOffset, baseLineY - fh * 0.4f,
+                    centerX + xOffset - fw * 0.5f, baseLineY,
+                    centerX + xOffset - fw * 0.65f, baseLineY - fh * 0.35f,
                     centerX + xOffset, baseLineY - fh
                 )
             }
             drawPath(path = path, color = color)
         }
 
-        // Capa Exterior (Roja) - La más grande
-        drawFlameLayer(
-            widthScale = 0.7f,
-            heightScale = 0.8f + (sin(phase) * 0.05f),
-            color = Color(0xFFF44336), // Rojo
-            xOffset = sin(phase) * 2f
-        )
+        // --- Double Tongue Effect (Juntos horizontalmente - Gap reducido) ---
+        val gap = 4.dp.toPx() * (0.5f + 0.5f * animatedIntensity)
 
-        // Capa Media (Naranja) - Centrada y compartiendo base
-        drawFlameLayer(
-            widthScale = 0.5f,
-            heightScale = 0.55f + (sin(phase * 1.5f) * 0.03f),
-            color = Color(0xFFFF9800), // Naranja
-            xOffset = sin(phase * 1.2f) * -1.5f
-        )
+        // Layer 1: Outer
+        drawFlameTongue(0.65f, 0.85f, flameColors.outer, -gap, 0f)
+        drawFlameTongue(0.65f, 0.85f, flameColors.outer, gap, 1.2f)
 
-        // Capa Interior (Amarilla) - Pequeña pero en la misma base
-        drawFlameLayer(
-            widthScale = 0.3f,
-            heightScale = 0.3f + (sin(phase * 2f) * 0.02f),
-            color = Color(0xFFFFEB3B), // Amarillo
-            xOffset = sin(phase * 2f) * 1f
-        )
+        // Layer 2: Middle
+        drawFlameTongue(0.48f, 0.65f, flameColors.mid, -gap * 0.6f, 0.6f)
+        drawFlameTongue(0.48f, 0.65f, flameColors.mid, gap * 0.6f, 2.0f)
 
-        // 2. SISTEMA DE PARTÍCULAS (ALINEADAS AL FLUJO)
+        // Layer 3: Inner
+        drawFlameTongue(0.32f, 0.4f, flameColors.inner, 0f, 3.5f)
+
+        // --- Particles ---
         particleProgress.forEachIndexed { index, progress ->
-            val pX = centerX + sin(phase + index) * (w * 0.25f)
-            val pY = baseLineY - (progress.value * h * 0.9f)
-            val pAlpha = 1f - progress.value
-            val pSize = (1f - progress.value) * 5f
+            val pX = centerX + sin(phase * 0.5f + index) * (w * (0.15f + 0.23f * animatedIntensity))
+            val pY = baseLineY - (progress.value * h * (1.1f + 0.1f * animatedIntensity))
+            val pAlpha = (1f - progress.value) * (0.4f + 0.6f * animatedIntensity)
+            val pSize = (1f - progress.value) * (3f + 4f * animatedIntensity)
 
-            // Solo mostrar si están por encima de la base de la llama
-            if (pY < baseLineY - 10f) {
+            if (pY < baseLineY - 5f) {
                 drawCircle(
-                    color = if (index % 2 == 0) Color(0xFFFFEB3B) else Color(0xFFFF9800),
+                    color = if (index % 2 == 0) flameColors.inner else flameColors.mid,
                     radius = pSize,
                     center = Offset(pX, pY),
                     alpha = pAlpha
@@ -360,6 +367,58 @@ fun StylizedParticleFlame(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+private data class FlamePalette(val outer: Color, val mid: Color, val inner: Color)
+
+private fun getFlameColors(intensity: Float): FlamePalette {
+    return when {
+        intensity < 0.3f -> {
+            // Cool Phase: Red & Deep Orange
+            val f = intensity / 0.3f
+            FlamePalette(
+                outer = lerpColor(Color(0xFF8B0000), Color(0xFFE25822), f),
+                mid = lerpColor(Color(0xFFB22222), Color(0xFFD35400), f),
+                inner = lerpColor(Color(0xFFE25822), Color(0xFFFF9800), f)
+            )
+        }
+        intensity < 0.6f -> {
+            // Warm Phase: Orange & Yellow
+            val f = (intensity - 0.3f) / 0.3f
+            FlamePalette(
+                outer = lerpColor(Color(0xFFE25822), Color(0xFFFF7700), f),
+                mid = lerpColor(Color(0xFFD35400), Color(0xFFFF9800), f),
+                inner = lerpColor(Color(0xFFFF9800), Color(0xFFFFD726), f)
+            )
+        }
+        intensity < 0.85f -> {
+            // Hot Phase: Yellow & White
+            val f = (intensity - 0.6f) / 0.25f
+            FlamePalette(
+                outer = lerpColor(Color(0xFFFF7700), Color(0xFFFFD726), f),
+                mid = lerpColor(Color(0xFFFF9800), Color(0xFFFFFFFF), f),
+                inner = lerpColor(Color(0xFFFFD726), Color(0xFFFFFFFF), f)
+            )
+        }
+        else -> {
+            // Super Intense: White & Blue
+            val f = (intensity - 0.85f) / 0.15f
+            FlamePalette(
+                outer = lerpColor(Color(0xFFFFD726), Color(0xFF006CF0), f),
+                mid = lerpColor(Color(0xFFFFFFFF), Color(0xFF00BCD4), f),
+                inner = lerpColor(Color(0xFFFFFFFF), Color(0xFFE0F7FA), f)
+            )
+        }
+    }
+}
+
+private fun lerpColor(start: Color, end: Color, fraction: Float): Color {
+    return Color(
+        red = start.red + (end.red - start.red) * fraction,
+        green = start.green + (end.green - start.green) * fraction,
+        blue = start.blue + (end.blue - start.blue) * fraction,
+        alpha = start.alpha + (end.alpha - start.alpha) * fraction
+    )
 }
 
 @Composable

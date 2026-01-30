@@ -34,7 +34,8 @@ import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import com.patrykandpatrick.vico.compose.common.insets
+import androidx.compose.runtime.remember
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
@@ -53,7 +54,7 @@ fun ChartScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
-    // Formateador de Fecha para el eje X (dd/MM)
+    // Date Formatter for X axis (dd/MM)
     val dateValueFormatter = CartesianValueFormatter { _, x, _ ->
         LocalDate.ofEpochDay(x.toLong()).format(DateTimeFormatter.ofPattern("dd/MM"))
     }
@@ -113,8 +114,8 @@ fun ChartScreen(
             } else if (uiState.isEmpty) {
                 Text("No hay suficientes datos para mostrar la gráfica.")
             } else {
-                // Gráfica Vico 2.0 con Estilo Premium
-                Card(
+            // Vico 2.0 Chart with Premium Styling
+    Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier.fillMaxWidth().height(300.dp)
@@ -128,12 +129,14 @@ fun ChartScreen(
                             rememberLineCartesianLayer(
                                 lineProvider = LineCartesianLayer.LineProvider.series(
                                     LineCartesianLayer.rememberLine(
-                                        fill = LineCartesianLayer.LineFill.single(com.patrykandpatrick.vico.compose.common.fill(primaryColor)),
-                                        stroke = LineCartesianLayer.LineStroke.Continuous()
+                                        fill = LineCartesianLayer.LineFill.single(fill(primaryColor)),
+                                        stroke = LineCartesianLayer.LineStroke.Continuous(),
+                                        areaFill = LineCartesianLayer.AreaFill.single(fill(primaryColor.copy(alpha = 0.15f)))
                                     ),
                                     LineCartesianLayer.rememberLine(
-                                        fill = LineCartesianLayer.LineFill.single(com.patrykandpatrick.vico.compose.common.fill(secondaryColor.copy(alpha = 0.5f))),
-                                        stroke = LineCartesianLayer.LineStroke.Continuous()
+                                        fill = LineCartesianLayer.LineFill.single(fill(secondaryColor.copy(alpha = 0.5f))),
+                                        stroke = LineCartesianLayer.LineStroke.Continuous(),
+                                        areaFill = LineCartesianLayer.AreaFill.single(fill(secondaryColor.copy(alpha = 0.1f)))
                                     )
                                 )
                             ),
@@ -146,11 +149,15 @@ fun ChartScreen(
                             ),
                             bottomAxis = HorizontalAxis.rememberBottom(
                                 label = rememberTextComponent(
-                                    color = onSurfaceColor
+                                    color = onSurfaceColor,
+                                    padding = insets(horizontal = 4.dp)
                                 ),
                                 line = rememberLineComponent(fill = fill(onSurfaceColor.copy(alpha = 0.2f))),
                                 valueFormatter = dateValueFormatter,
-                                itemPlacer = HorizontalAxis.ItemPlacer.aligned(addExtremeLabelPadding = true)
+                                itemPlacer = HorizontalAxis.ItemPlacer.aligned(
+                                    spacing = { 3 },
+                                    addExtremeLabelPadding = true
+                                )
                             )
                         ),
                         modelProducer = viewModel.modelProducer,

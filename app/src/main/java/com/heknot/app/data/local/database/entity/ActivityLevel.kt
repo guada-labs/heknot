@@ -1,8 +1,8 @@
 package com.heknot.app.data.local.database.entity
 
 /**
- * Nivel de actividad física diaria (sin contar ejercicio específico).
- * Se usa para calcular el TDEE (Total Daily Energy Expenditure).
+ * Daily physical activity level (excluding specific exercise).
+ * Used for TDEE (Total Daily Energy Expenditure) calculation.
  */
 enum class ActivityLevel(
     val displayName: String,
@@ -10,28 +10,28 @@ enum class ActivityLevel(
     val description: String
 ) {
     SEDENTARY(
-        "Sedentario",
+        "Sedentary",
         1.2f,
-        "Poco o ningún ejercicio, trabajo de oficina"
+        "Little or no exercise, desk job"
     ),
     LIGHT(
-        "Ligero",
+        "Light",
         1.375f,
-        "Ejercicio ligero 1-3 días/semana"
+        "Light exercise 1-3 days/week"
     ),
     MODERATE(
-        "Moderado",
+        "Moderate",
         1.55f,
-        "Ejercicio moderado 3-5 días/semana"
+        "Moderate exercise 3-5 days/week"
     ),
     ACTIVE(
-        "Activo",
+        "Active",
         1.725f,
-        "Ejercicio intenso 6-7 días/semana"
+        "Intense exercise 6-7 days/week"
     ),
     VERY_ACTIVE(
-        "Muy Activo",
+        "Very Active",
         1.9f,
-        "Ejercicio muy intenso, trabajo físico o entrenamiento 2 veces al día"
+        "Very intense exercise, physical job or training 2 times per day"
     )
 }
