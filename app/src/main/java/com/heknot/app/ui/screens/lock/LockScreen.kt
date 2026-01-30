@@ -17,66 +17,86 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun LockScreen(
-    onAuthenticate: () -> Unit
+    onAuthenticate: () -> Unit,
+    errorMessage: String? = null,
+    onDismissError: () -> Unit = {}
 ) {
+    val snackbarHostState = androidx.compose.material3.SnackbarHostState()
+
     // Auto-trigger authentication when screen appears
     LaunchedEffect(Unit) {
         onAuthenticate()
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(24.dp)
+    // Show error message when it changes
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(
+                message = it,
+                duration = SnackbarDuration.Short
+            )
+            onDismissError()
+        }
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Heknot",
-                style = MaterialTheme.typography.displayMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-1).sp
-                ),
-                color = MaterialTheme.colorScheme.primary
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = "Tu progreso está protegido",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(64.dp))
-
-            Surface(
-                onClick = onAuthenticate,
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(90.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(24.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Fingerprint,
-                        contentDescription = "Desbloquear",
-                        modifier = Modifier.size(44.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                Text(
+                    text = "Heknot",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = (-1).sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "Tu progreso está protegido",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(64.dp))
+
+                Surface(
+                    onClick = onAuthenticate,
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(90.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Fingerprint,
+                            contentDescription = "Desbloquear",
+                            modifier = Modifier.size(44.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
-            }
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Button(
-                onClick = onAuthenticate,
-                colors = ButtonDefaults.filledTonalButtonColors()
-            ) {
-                Text("Desbloquear con biometría")
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                Button(
+                    onClick = onAuthenticate,
+                    colors = ButtonDefaults.filledTonalButtonColors()
+                ) {
+                    Text("Desbloquear con biometría")
+                }
             }
         }
     }

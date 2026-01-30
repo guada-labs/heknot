@@ -37,11 +37,19 @@ class MainActivity : FragmentActivity() {
                     com.heknot.app.ui.screens.lock.LockScreen(
                         onAuthenticate = {
                             biometricAuthenticator.authenticate(
-                                onSuccess = { viewModel.setAuthenticated(true) },
-                                onError = { /* Handle error */ },
-                                onFailed = { /* Handle failure */ }
+                                onSuccess = { 
+                                    viewModel.setAuthenticated(true) 
+                                },
+                                onError = { errorMessage ->
+                                    viewModel.setBiometricError(errorMessage)
+                                },
+                                onFailed = { 
+                                    viewModel.setBiometricError("Autenticación fallida. Intenta de nuevo.")
+                                }
                             )
-                        }
+                        },
+                        errorMessage = viewModel.biometricError.collectAsState().value,
+                        onDismissError = { viewModel.clearBiometricError() }
                     )
                 } else {
                     HeknotApp(viewModel = viewModel)

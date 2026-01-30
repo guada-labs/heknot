@@ -40,7 +40,18 @@ class MainViewModel(
     private val _isAuthenticated = kotlinx.coroutines.flow.MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated
 
+    private val _biometricError = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val biometricError: StateFlow<String?> = _biometricError
+
     fun setAuthenticated(value: Boolean) {
         _isAuthenticated.value = value
+    }
+
+    fun setBiometricError(message: String) {
+        _biometricError.value = message
+    }
+
+    fun clearBiometricError() {
+        _biometricError.value = null
     }
 }
