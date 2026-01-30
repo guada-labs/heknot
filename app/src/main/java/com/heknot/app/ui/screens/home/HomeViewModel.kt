@@ -199,7 +199,7 @@ class HomeViewModel(
                     dateTime = LocalDateTime.now(),
                     type = type,
                     description = description,
-                    calories = calories
+                    calories = calories ?: 0
                 )
             )
         }

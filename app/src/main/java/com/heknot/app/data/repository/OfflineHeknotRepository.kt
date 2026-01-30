@@ -120,6 +120,100 @@ class OfflineHeknotRepository(private val database: HeknotDatabase) : HeknotRepo
     override suspend fun insertGuidedExercise(exercise: GuidedExercise): Long =
         database.guidedExerciseDao().insertExercise(exercise)
 
+    // --- Food Items ---
+    override fun getAllFoodItems(): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>> =
+        database.foodItemDao().getAllFoodItems()
+
+    override fun getFavoriteFoodItems(): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>> =
+        database.foodItemDao().getFavorites()
+
+    override fun getPantryItems(): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>> =
+        database.foodItemDao().getPantryItems()
+
+    override fun searchFoodItems(query: String): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>> =
+        database.foodItemDao().searchByName(query)
+
+    override suspend fun getFoodItemById(id: Long): com.heknot.app.data.local.database.entity.FoodItem? =
+        database.foodItemDao().getById(id)
+
+    override suspend fun insertFoodItem(foodItem: com.heknot.app.data.local.database.entity.FoodItem): Long =
+        database.foodItemDao().insert(foodItem)
+
+    override suspend fun updateFoodItem(foodItem: com.heknot.app.data.local.database.entity.FoodItem): Int =
+        database.foodItemDao().update(foodItem)
+
+    override suspend fun deleteFoodItem(foodItem: com.heknot.app.data.local.database.entity.FoodItem): Int =
+        database.foodItemDao().delete(foodItem)
+
+    override suspend fun setFoodItemFavorite(id: Long, isFavorite: Boolean): Int =
+        database.foodItemDao().setFavorite(id, isFavorite)
+
+    override suspend fun setFoodItemInPantry(id: Long, isInPantry: Boolean): Int =
+        database.foodItemDao().setInPantry(id, isInPantry)
+
+    // --- Recipes ---
+    override fun getAllRecipes(): Flow<List<com.heknot.app.data.local.database.entity.Recipe>> =
+        database.recipeDao().getAllRecipes()
+
+    override fun getFavoriteRecipes(): Flow<List<com.heknot.app.data.local.database.entity.Recipe>> =
+        database.recipeDao().getFavorites()
+
+    override fun searchRecipes(query: String): Flow<List<com.heknot.app.data.local.database.entity.Recipe>> =
+        database.recipeDao().searchByName(query)
+
+    override fun getRecipesWithAvailableIngredients(): Flow<List<com.heknot.app.data.local.database.entity.Recipe>> =
+        database.recipeDao().getRecipesWithAvailableIngredients()
+
+    override suspend fun getRecipeById(id: Long): com.heknot.app.data.local.database.entity.Recipe? =
+        database.recipeDao().getById(id)
+
+    override fun getRecipeByIdFlow(id: Long): Flow<com.heknot.app.data.local.database.entity.Recipe?> =
+        database.recipeDao().getByIdFlow(id)
+
+    override suspend fun insertRecipe(recipe: com.heknot.app.data.local.database.entity.Recipe): Long =
+        database.recipeDao().insert(recipe)
+
+    override suspend fun updateRecipe(recipe: com.heknot.app.data.local.database.entity.Recipe): Int =
+        database.recipeDao().update(recipe)
+
+    override suspend fun deleteRecipe(recipe: com.heknot.app.data.local.database.entity.Recipe): Int =
+        database.recipeDao().delete(recipe)
+
+    override suspend fun setRecipeFavorite(id: Long, isFavorite: Boolean): Int =
+        database.recipeDao().setFavorite(id, isFavorite)
+
+    override suspend fun incrementRecipeTimesCooked(id: Long): Int =
+        database.recipeDao().incrementTimesCooked(id, System.currentTimeMillis())
+
+    // --- Recipe Ingredients ---
+    override fun getRecipeIngredients(recipeId: Long): Flow<List<com.heknot.app.data.local.database.entity.RecipeIngredient>> =
+        database.recipeDao().getRecipeIngredients(recipeId)
+
+    override suspend fun insertRecipeIngredient(recipeIngredient: com.heknot.app.data.local.database.entity.RecipeIngredient): Long =
+        database.recipeDao().insertRecipeIngredient(recipeIngredient)
+
+    override suspend fun insertRecipeIngredients(recipeIngredients: List<com.heknot.app.data.local.database.entity.RecipeIngredient>): List<Long> =
+        database.recipeDao().insertRecipeIngredients(recipeIngredients)
+
+    override suspend fun deleteRecipeIngredient(recipeIngredient: com.heknot.app.data.local.database.entity.RecipeIngredient): Int =
+        database.recipeDao().deleteRecipeIngredient(recipeIngredient)
+
+    // --- Enhanced Meal Logging ---
+    override fun getPlannedMeals(): Flow<List<MealLog>> =
+        database.mealDao().getPlannedMeals()
+
+    override fun getPlannedMealsByDate(date: LocalDate): Flow<List<MealLog>> =
+        database.mealDao().getPlannedMealsByDate(date)
+
+    override fun getProjectedCaloriesByDate(date: LocalDate): Flow<Int?> =
+        database.mealDao().getProjectedCaloriesByDate(date)
+
+    override suspend fun updateMeal(mealLog: MealLog): Int =
+        database.mealDao().update(mealLog)
+
+    override suspend fun markMealAsConsumed(id: Long): Int =
+        database.mealDao().markAsConsumed(id)
+
     override suspend fun resetData() {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             database.clearAllTables()

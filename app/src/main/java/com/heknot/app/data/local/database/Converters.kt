@@ -6,6 +6,9 @@ import com.heknot.app.data.local.database.entity.WorkoutType
 import com.heknot.app.data.local.database.entity.Gender
 import com.heknot.app.data.local.database.entity.ActivityLevel
 import com.heknot.app.data.local.database.entity.WorkoutCategory
+import com.heknot.app.data.local.database.entity.FoodCategory
+import com.heknot.app.data.local.database.entity.ServingUnit
+import com.heknot.app.data.local.database.entity.RecipeDifficulty
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -116,5 +119,38 @@ class Converters {
     @TypeConverter
     fun toFitnessGoal(goalString: String): com.heknot.app.data.local.database.entity.FitnessGoal {
         return com.heknot.app.data.local.database.entity.FitnessGoal.valueOf(goalString)
+    }
+
+    // --- FoodCategory Enum ---
+    @TypeConverter
+    fun fromFoodCategory(category: FoodCategory): String {
+        return category.name
+    }
+
+    @TypeConverter
+    fun toFoodCategory(categoryString: String): FoodCategory {
+        return FoodCategory.valueOf(categoryString)
+    }
+
+    // --- ServingUnit Enum ---
+    @TypeConverter
+    fun fromServingUnit(unit: ServingUnit): String {
+        return unit.name
+    }
+
+    @TypeConverter
+    fun toServingUnit(unitString: String): ServingUnit {
+        return ServingUnit.valueOf(unitString)
+    }
+
+    // --- RecipeDifficulty Enum ---
+    @TypeConverter
+    fun fromRecipeDifficulty(difficulty: RecipeDifficulty): String {
+        return difficulty.name
+    }
+
+    @TypeConverter
+    fun toRecipeDifficulty(difficultyString: String): RecipeDifficulty {
+        return RecipeDifficulty.valueOf(difficultyString)
     }
 }

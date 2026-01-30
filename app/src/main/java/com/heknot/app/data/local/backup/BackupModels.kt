@@ -53,7 +53,7 @@ data class WorkoutLogBackup(
 data class MealLogBackup(
     val type: String,
     val dateTime: String,
-    val description: String,
+    val description: String?,
     val calories: Int?
 )
 

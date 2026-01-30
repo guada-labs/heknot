@@ -5,15 +5,20 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.heknot.app.data.local.database.dao.FoodItemDao
 import com.heknot.app.data.local.database.dao.GuidedExerciseDao
 import com.heknot.app.data.local.database.dao.MealDao
+import com.heknot.app.data.local.database.dao.RecipeDao
 import com.heknot.app.data.local.database.dao.SleepDao
 import com.heknot.app.data.local.database.dao.UserProfileDao
 import com.heknot.app.data.local.database.dao.WaterDao
 import com.heknot.app.data.local.database.dao.WeightDao
 import com.heknot.app.data.local.database.dao.WorkoutDao
+import com.heknot.app.data.local.database.entity.FoodItem
 import com.heknot.app.data.local.database.entity.GuidedExercise
 import com.heknot.app.data.local.database.entity.MealLog
+import com.heknot.app.data.local.database.entity.Recipe
+import com.heknot.app.data.local.database.entity.RecipeIngredient
 import com.heknot.app.data.local.database.entity.SleepLog
 import com.heknot.app.data.local.database.entity.UserProfile
 import com.heknot.app.data.local.database.entity.WaterLog
@@ -28,9 +33,12 @@ import com.heknot.app.data.local.database.entity.WorkoutLog
         MealLog::class,
         WaterLog::class,
         SleepLog::class,
-        GuidedExercise::class
+        GuidedExercise::class,
+        FoodItem::class,
+        Recipe::class,
+        RecipeIngredient::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -43,6 +51,8 @@ abstract class HeknotDatabase : RoomDatabase() {
     abstract fun waterDao(): WaterDao
     abstract fun sleepDao(): SleepDao
     abstract fun guidedExerciseDao(): GuidedExerciseDao
+    abstract fun foodItemDao(): FoodItemDao
+    abstract fun recipeDao(): RecipeDao
 
     companion object {
         @Volatile
@@ -58,7 +68,8 @@ abstract class HeknotDatabase : RoomDatabase() {
                 .addMigrations(
                     Migrations.MIGRATION_7_8, 
                     Migrations.MIGRATION_8_9,
-                    Migrations.MIGRATION_9_10
+                    Migrations.MIGRATION_9_10,
+                    Migrations.MIGRATION_10_11
                 )
                 .fallbackToDestructiveMigration() // Fallback if other migrations are missing
                 .build()

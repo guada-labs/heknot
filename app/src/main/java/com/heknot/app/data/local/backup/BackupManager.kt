@@ -102,7 +102,7 @@ class BackupManager(
                         type = MealType.valueOf(b.type),
                         dateTime = LocalDateTime.parse(b.dateTime),
                         description = b.description,
-                        calories = b.calories
+                        calories = b.calories ?: 0
                     )
                 )
             }

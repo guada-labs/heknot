@@ -60,6 +60,44 @@ interface HeknotRepository {
     fun getGuidedExercisesByCategory(category: WorkoutCategory): Flow<List<GuidedExercise>>
     suspend fun insertGuidedExercise(exercise: GuidedExercise): Long
 
+    // --- Food Items ---
+    fun getAllFoodItems(): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>>
+    fun getFavoriteFoodItems(): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>>
+    fun getPantryItems(): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>>
+    fun searchFoodItems(query: String): Flow<List<com.heknot.app.data.local.database.entity.FoodItem>>
+    suspend fun getFoodItemById(id: Long): com.heknot.app.data.local.database.entity.FoodItem?
+    suspend fun insertFoodItem(foodItem: com.heknot.app.data.local.database.entity.FoodItem): Long
+    suspend fun updateFoodItem(foodItem: com.heknot.app.data.local.database.entity.FoodItem): Int
+    suspend fun deleteFoodItem(foodItem: com.heknot.app.data.local.database.entity.FoodItem): Int
+    suspend fun setFoodItemFavorite(id: Long, isFavorite: Boolean): Int
+    suspend fun setFoodItemInPantry(id: Long, isInPantry: Boolean): Int
+
+    // --- Recipes ---
+    fun getAllRecipes(): Flow<List<com.heknot.app.data.local.database.entity.Recipe>>
+    fun getFavoriteRecipes(): Flow<List<com.heknot.app.data.local.database.entity.Recipe>>
+    fun searchRecipes(query: String): Flow<List<com.heknot.app.data.local.database.entity.Recipe>>
+    fun getRecipesWithAvailableIngredients(): Flow<List<com.heknot.app.data.local.database.entity.Recipe>>
+    suspend fun getRecipeById(id: Long): com.heknot.app.data.local.database.entity.Recipe?
+    fun getRecipeByIdFlow(id: Long): Flow<com.heknot.app.data.local.database.entity.Recipe?>
+    suspend fun insertRecipe(recipe: com.heknot.app.data.local.database.entity.Recipe): Long
+    suspend fun updateRecipe(recipe: com.heknot.app.data.local.database.entity.Recipe): Int
+    suspend fun deleteRecipe(recipe: com.heknot.app.data.local.database.entity.Recipe): Int
+    suspend fun setRecipeFavorite(id: Long, isFavorite: Boolean): Int
+    suspend fun incrementRecipeTimesCooked(id: Long): Int
+
+    // --- Recipe Ingredients ---
+    fun getRecipeIngredients(recipeId: Long): Flow<List<com.heknot.app.data.local.database.entity.RecipeIngredient>>
+    suspend fun insertRecipeIngredient(recipeIngredient: com.heknot.app.data.local.database.entity.RecipeIngredient): Long
+    suspend fun insertRecipeIngredients(recipeIngredients: List<com.heknot.app.data.local.database.entity.RecipeIngredient>): List<Long>
+    suspend fun deleteRecipeIngredient(recipeIngredient: com.heknot.app.data.local.database.entity.RecipeIngredient): Int
+
+    // --- Enhanced Meal Logging ---
+    fun getPlannedMeals(): Flow<List<MealLog>>
+    fun getPlannedMealsByDate(date: LocalDate): Flow<List<MealLog>>
+    fun getProjectedCaloriesByDate(date: LocalDate): Flow<Int?>
+    suspend fun updateMeal(mealLog: MealLog): Int
+    suspend fun markMealAsConsumed(id: Long): Int
+
     // Reset
     suspend fun resetData()
 }
