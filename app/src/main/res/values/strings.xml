@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Heknot</string>
+    <string name="widget_description">Muestra tu peso actual y racha de días</string>
+    <string name="widget_small_weight_description">Peso actual</string>
+    <string name="widget_large_stats_description">Estadísticas completas: peso, racha y balance calórico</string>
+    <string name="widget_streak_description">Tu racha de días consecutivos</string>
 </resources>
