@@ -106,4 +106,15 @@ class Converters {
     fun toWorkoutCategory(categoryString: String): WorkoutCategory {
         return WorkoutCategory.valueOf(categoryString)
     }
+
+    // --- FitnessGoal Enum ---
+    @TypeConverter
+    fun fromFitnessGoal(goal: com.heknot.app.data.local.database.entity.FitnessGoal): String {
+        return goal.name
+    }
+
+    @TypeConverter
+    fun toFitnessGoal(goalString: String): com.heknot.app.data.local.database.entity.FitnessGoal {
+        return com.heknot.app.data.local.database.entity.FitnessGoal.valueOf(goalString)
+    }
 }

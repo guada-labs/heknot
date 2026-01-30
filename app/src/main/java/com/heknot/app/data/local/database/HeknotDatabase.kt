@@ -5,12 +5,18 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.heknot.app.data.local.database.dao.GuidedExerciseDao
 import com.heknot.app.data.local.database.dao.MealDao
+import com.heknot.app.data.local.database.dao.SleepDao
 import com.heknot.app.data.local.database.dao.UserProfileDao
+import com.heknot.app.data.local.database.dao.WaterDao
 import com.heknot.app.data.local.database.dao.WeightDao
 import com.heknot.app.data.local.database.dao.WorkoutDao
+import com.heknot.app.data.local.database.entity.GuidedExercise
 import com.heknot.app.data.local.database.entity.MealLog
+import com.heknot.app.data.local.database.entity.SleepLog
 import com.heknot.app.data.local.database.entity.UserProfile
+import com.heknot.app.data.local.database.entity.WaterLog
 import com.heknot.app.data.local.database.entity.WeightEntry
 import com.heknot.app.data.local.database.entity.WorkoutLog
 
@@ -19,9 +25,12 @@ import com.heknot.app.data.local.database.entity.WorkoutLog
         UserProfile::class,
         WeightEntry::class,
         WorkoutLog::class,
-        MealLog::class
+        MealLog::class,
+        WaterLog::class,
+        SleepLog::class,
+        GuidedExercise::class
     ],
-    version = 8,
+    version = 10,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -31,6 +40,9 @@ abstract class HeknotDatabase : RoomDatabase() {
     abstract fun weightDao(): WeightDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun mealDao(): MealDao
+    abstract fun waterDao(): WaterDao
+    abstract fun sleepDao(): SleepDao
+    abstract fun guidedExerciseDao(): GuidedExerciseDao
 
     companion object {
         @Volatile
@@ -43,7 +55,11 @@ abstract class HeknotDatabase : RoomDatabase() {
                     HeknotDatabase::class.java,
                     "heknot_database"
                 )
-                .addMigrations(Migrations.MIGRATION_7_8)
+                .addMigrations(
+                    Migrations.MIGRATION_7_8, 
+                    Migrations.MIGRATION_8_9,
+                    Migrations.MIGRATION_9_10
+                )
                 .fallbackToDestructiveMigration() // Fallback if other migrations are missing
                 .build()
                 .also { Instance = it }

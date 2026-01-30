@@ -28,9 +28,23 @@ class SettingsViewModel(
             initialValue = null
         )
 
+    val biometricEnabled: StateFlow<Boolean> = repository.getUserProfile()
+        .map { it?.biometricEnabled ?: false }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     fun setDarkMode(enabled: Boolean?) {
         viewModelScope.launch {
             repository.updateDarkMode(enabled)
+        }
+    }
+
+    fun setBiometricEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.updateBiometricEnabled(enabled)
         }
     }
 

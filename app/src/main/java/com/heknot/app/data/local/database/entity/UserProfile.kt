@@ -35,6 +35,7 @@ data class UserProfile(
     val reminderEnabled: Boolean = false,
     val reminderTime: LocalTime? = null,
     val isDarkMode: Boolean? = null,
+    val biometricEnabled: Boolean = false,
     
     val createdAt: LocalDate = LocalDate.now()
 )

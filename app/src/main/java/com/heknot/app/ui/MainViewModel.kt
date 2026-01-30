@@ -28,4 +28,19 @@ class MainViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+
+    val biometricEnabled: StateFlow<Boolean> = repository.getUserProfile()
+        .map { it?.biometricEnabled ?: false }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    private val _isAuthenticated = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated
+
+    fun setAuthenticated(value: Boolean) {
+        _isAuthenticated.value = value
+    }
 }

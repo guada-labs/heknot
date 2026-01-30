@@ -27,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.heknot.app.ui.AppViewModelProvider
 
@@ -50,15 +52,28 @@ fun OnboardingScreen(
         ) {
             
             Text(
-                text = "Bienvenido a heknot",
-                style = MaterialTheme.typography.displaySmall,
+                text = "Bienvenido a",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            Text(
+                text = "heknot",
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-1).sp
+                ),
                 color = MaterialTheme.colorScheme.primary
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
                 text = "Configura tu perfil para empezar",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
