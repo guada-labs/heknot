@@ -1,6 +1,7 @@
 package com.heknot.app.ui.screens.nutrition
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -33,12 +34,29 @@ import com.heknot.app.data.local.database.entity.FoodCategory
 import com.heknot.app.data.local.database.entity.FoodItem
 import com.heknot.app.data.local.database.entity.ServingUnit
 
+import android.graphics.Bitmap
+
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
+import com.heknot.app.util.Pixelator
+import com.heknot.app.util.GeminiNutritionParser
+import com.heknot.app.util.ScannedNutrition
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.camera.view.PreviewView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.border
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FoodItemFormSheet(
     existingItem: FoodItem? = null,
     onDismiss: () -> Unit,
-    onConfirm: (FoodItem, Boolean) -> Unit
+    onConfirm: (FoodItem, Boolean) -> Unit,
+    onSmartParse: (String, (FoodItem) -> Unit) -> Unit = { _, _ -> },
+    onScanLabel: ((Int, Float, Float, Float) -> Unit) -> Unit = { _ -> }
 ) {
     val isEditMode = existingItem != null && existingItem.id != 0L
     
@@ -47,8 +65,8 @@ fun FoodItemFormSheet(
     var calories by remember { mutableStateOf(existingItem?.calories?.toString() ?: "") }
     var protein by remember { mutableStateOf(existingItem?.protein?.toString() ?: "") }
     var carbs by remember { mutableStateOf(existingItem?.carbs?.toString() ?: "") }
-    var fat by remember { mutableStateOf(existingItem?.fat?.toString() ?: "") }
-    
+    var fat by remember { mutableStateOf(existingItem?.fat?.toString() ?: "") } // State var 'fat'
+
     // Extended Details
     var brand by remember { mutableStateOf(existingItem?.brand ?: "") }
     var showDetails by remember { mutableStateOf(false) } // Default collapsed
@@ -56,6 +74,23 @@ fun FoodItemFormSheet(
     // Smart Features State
     var smartDescription by remember { mutableStateOf("") }
     var isGeneratingPixelArt by remember { mutableStateOf(false) }
+    var isAnalyzingScan by remember { mutableStateOf(false) }
+    var showLabelScanner by remember { mutableStateOf(false) }
+    var foodImageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    var showVisualSelector by remember { mutableStateOf(false) }
+
+    
+    // Visual Identity State
+    var selectedEmoji by remember { mutableStateOf("") }
+    var selectedIconName by remember { mutableStateOf("") }
+    
+    // Pixel Art Logic
+    var originalBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var pixelGridSize by remember { mutableFloatStateOf(12f) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val geminiParser = remember { GeminiNutritionParser(context) }
+
     
     // Detailed fields (defaulting if new)
     var selectedCategory by remember { mutableStateOf(existingItem?.category ?: FoodCategory.OTHER) }
@@ -64,6 +99,13 @@ fun FoodItemFormSheet(
     var fiber by remember { mutableStateOf(existingItem?.fiber?.toString() ?: "") }
     var sugar by remember { mutableStateOf(existingItem?.sugar?.toString() ?: "") }
     var sodium by remember { mutableStateOf(existingItem?.sodium?.toString() ?: "") }
+    // Simulation logic for Pixel Art completion
+    LaunchedEffect(isGeneratingPixelArt) {
+        if (isGeneratingPixelArt) {
+            kotlinx.coroutines.delay(3000)
+            isGeneratingPixelArt = false
+        }
+    }
 
     // Colors
     val proteinColor = Color(0xFF4CAF50)
@@ -83,7 +125,6 @@ fun FoodItemFormSheet(
                 .navigationBarsPadding()
                 .imePadding() // Avoid keyboard overlap
                 .padding(horizontal = 24.dp)
-                .animateContentSize() // Smooth transition when toggling details
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -94,42 +135,94 @@ fun FoodItemFormSheet(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Visual Avatar (Pixel Art / Photo / Icon)
+                // Visual Avatar (Photo / Icon / Emoji)
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable { isGeneratingPixelArt = !isGeneratingPixelArt }, // Toggle simulator
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                        .clickable { showVisualSelector = true },
+
                     contentAlignment = Alignment.Center
                 ) {
                     if (isGeneratingPixelArt) {
-                        // Simulating Local Generation
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(30.dp), strokeWidth = 3.dp)
+                    } else if (foodImageBitmap != null) {
+                        Image(
+                            bitmap = foodImageBitmap!!,
+                            contentDescription = "Food Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else if (selectedEmoji.isNotEmpty()) {
+                        Text(selectedEmoji, style = MaterialTheme.typography.displaySmall)
                     } else {
                         val icon = if (selectedCategory == FoodCategory.BEVERAGES) Icons.Default.WaterDrop else Icons.Rounded.Fastfood
                         Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
                     }
                     
                     // Edit Badge
-                    Box(modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).background(MaterialTheme.colorScheme.primary, CircleShape).padding(4.dp)) {
-                         Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(4.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            .padding(4.dp)
+                    ) {
+                         Icon(Icons.Default.AddAPhoto, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(10.dp))
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.width(16.dp))
-                
-                Column(modifier = Modifier.weight(1f)) {
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
                         if (isEditMode) "Editar Ingrediente" else "Nuevo Ingrediente", 
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Define la base de tus comidas",
+                        "Clasifica y define macros",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nombre") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                    )
+
+                    // Pixel Grid Customization
+                    if (originalBitmap != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Pixel Grid: ${pixelGridSize.toInt()}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Slider(
+                            value = pixelGridSize,
+                            onValueChange = { 
+                                pixelGridSize = it 
+                                scope.launch {
+                                    originalBitmap?.let { bitmap ->
+                                        foodImageBitmap = Pixelator.pixelate(bitmap, pixelSize = it.toInt())
+                                    }
+                                }
+                            },
+                            valueRange = 5f..50f,
+                            steps = 9
+                        )
+                    }
                 }
             }
 
@@ -160,7 +253,17 @@ fun FoodItemFormSheet(
                         textStyle = MaterialTheme.typography.bodyMedium,
                         trailingIcon = {
                              if (smartDescription.isNotEmpty()) {
-                                 IconButton(onClick = { /* TODO: Trigger Gemini Nano */ }) {
+                                 IconButton(onClick = {
+                                     onSmartParse(smartDescription) { result ->
+                                         name = result.name
+                                         calories = result.calories.toString()
+                                         protein = result.protein.toString()
+                                         carbs = result.carbs.toString()
+                                         fat = result.fat.toString()
+                                         servingSize = result.servingSize.toString()
+                                         isGeneratingPixelArt = true
+                                     }
+                                 }) {
                                      Icon(Icons.Default.AutoAwesome, "Generar", tint = MaterialTheme.colorScheme.primary)
                                  }
                              }
@@ -171,7 +274,7 @@ fun FoodItemFormSheet(
 
             // --- SCANNER SHORTCUT ---
             OutlinedButton(
-                onClick = { /* TODO: Scan Label */ },
+                onClick = { showLabelScanner = true },
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
@@ -180,7 +283,67 @@ fun FoodItemFormSheet(
                 Text("Escanear Tabla Nutricional")
             }
 
-            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f))
+            if (showLabelScanner) {
+                LabelScannerSheet(
+                    geminiParser = geminiParser,
+                    onDismiss = { showLabelScanner = false },
+                    onResult = { result ->
+                        showLabelScanner = false
+                        if (result.name != null) name = result.name
+                        if (result.brand != null) brand = result.brand
+                        if (result.calories > 0) calories = result.calories.toString()
+                        if (result.protein > 0f) protein = result.protein.toString()
+                        if (result.carbs > 0f) carbs = result.carbs.toString()
+                        if (result.fat > 0f) fat = result.fat.toString()
+                        if (result.sugar > 0f) sugar = result.sugar.toString()
+                        if (result.fiber > 0f) fiber = result.fiber.toString()
+                        if (result.sodium > 0f) sodium = result.sodium.toString()
+                        if (result.servingSize > 0f) servingSize = result.servingSize.toString()
+                        
+                        // Map category string to enum
+                        result.category?.let { catStr ->
+                            try {
+                                selectedCategory = com.heknot.app.data.local.database.entity.FoodCategory.valueOf(catStr.uppercase())
+                            } catch (e: Exception) { /* ignore */ }
+                        }
+                    }
+                )
+            }
+
+            if (isAnalyzingScan) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(2.dp)),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    "Gemini Nano analizando etiqueta...",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+
+            if (showVisualSelector) {
+                VisualSelectorSheet(
+                    onDismiss = { showVisualSelector = false },
+                    onEmojiSelected = { 
+                        selectedEmoji = it
+                        foodImageBitmap = null
+                        showVisualSelector = false
+                    },
+                    onPhotoCaptured = { bitmap ->
+                        originalBitmap = bitmap
+                        foodImageBitmap = bitmap.asImageBitmap()
+                        showVisualSelector = false
+                        // Auto-pixelate if user likes the style
+                        scope.launch {
+                            isGeneratingPixelArt = true
+                            foodImageBitmap = Pixelator.pixelate(bitmap, pixelSize = pixelGridSize.toInt())
+                            isGeneratingPixelArt = false
+                        }
+                    }
+                )
+            }
 
             // --- BASIC FIELDS ---
             OutlinedTextField(
@@ -408,5 +571,133 @@ fun AddMealOptionsSheet(
                 Text("Armar Manualmente")
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VisualSelectorSheet(
+    onDismiss: () -> Unit,
+    onEmojiSelected: (String) -> Unit,
+    onPhotoCaptured: (Bitmap) -> Unit
+) {
+    val context = LocalContext.current
+    var showCamera by remember { mutableStateOf(false) }
+
+    if (showCamera) {
+        QuickCaptureSheet(
+            onDismiss = { showCamera = false },
+            onCaptured = { bitmap ->
+                onPhotoCaptured(bitmap)
+                showCamera = false
+            }
+        )
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text("Identidad Visual", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                VisualOptionCard(
+                    icon = Icons.Default.CameraAlt,
+                    label = "Cámara",
+                    modifier = Modifier.weight(1f),
+                    onClick = { showCamera = true }
+                )
+                VisualOptionCard(
+                    icon = Icons.Default.Image,
+                    label = "Galería",
+                    modifier = Modifier.weight(1f),
+                    onClick = { /* TODO */ }
+                )
+            }
+
+            Text("Emojis Rápidos", style = MaterialTheme.typography.labelMedium)
+            val emojis = listOf("🍎", "🥤", "🍖", "🥦", "🍕", "🍰", "🍚", "🥑")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                emojis.forEach { emoji ->
+                    Text(
+                        text = emoji,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { onEmojiSelected(emoji) }
+                            .wrapContentSize(Alignment.Center),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun VisualOptionCard(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(100.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuickCaptureSheet(onDismiss: () -> Unit, onCaptured: (Bitmap) -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Box(modifier = Modifier.fillMaxWidth().height(450.dp).background(Color.Black)) {
+            var pView: PreviewView? by remember { mutableStateOf(null) }
+            
+            CameraPreview(
+                flashEnabled = false,
+                onPreviewViewCreated = { pView = it },
+                onTextFound = {}
+            )
+            
+            // Reticle
+            Box(
+                modifier = Modifier
+                    .size(250.dp)
+                    .border(2.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                    .align(Alignment.Center)
+            )
+
+            Button(
+                onClick = { pView?.bitmap?.let { onCaptured(it) } },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(48.dp)
+                    .fillMaxWidth(0.6f)
+                    .height(56.dp)
+            ) {
+                Icon(Icons.Default.PhotoCamera, null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Capturar Item")
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }

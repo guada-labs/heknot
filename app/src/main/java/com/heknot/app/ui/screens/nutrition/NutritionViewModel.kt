@@ -506,6 +506,59 @@ class NutritionViewModel(
 
     // --- Utility ---
 
+    /**
+     * Simulates AI parsing of a food description to extract nutritional data.
+     * In a real app, this would call Gemini Nano or an external API.
+     */
+    fun parseFoodDescription(description: String, onResult: (FoodItem) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            kotlinx.coroutines.delay(1500) // Simulate AI latency
+            
+            val lowerDesc = description.lowercase()
+            val mockItem = when {
+                lowerDesc.contains("manzana") || lowerDesc.contains("apple") -> 
+                    FoodItem(name = "Manzana", calories = 95, protein = 0.5f, carbs = 25f, fat = 0.3f, servingSize = 180f)
+                lowerDesc.contains("pollo") || lowerDesc.contains("chicken") -> 
+                    FoodItem(name = "Pechuga de Pollo", calories = 165, protein = 31f, carbs = 0f, fat = 3.6f, servingSize = 100f)
+                lowerDesc.contains("arroz") || lowerDesc.contains("rice") -> 
+                    FoodItem(name = "Arroz Blanco", calories = 130, protein = 2.7f, carbs = 28f, fat = 0.3f, servingSize = 100f)
+                lowerDesc.contains("huevo") || lowerDesc.contains("egg") -> 
+                    FoodItem(name = "Huevo", calories = 70, protein = 6f, carbs = 0.6f, fat = 5f, servingSize = 50f)
+                else -> FoodItem(
+                    name = description.replaceFirstChar { it.uppercase() }, 
+                    calories = 0,
+                    protein = 0f, 
+                    carbs = 0f, 
+                    fat = 0f, 
+                    servingSize = 100f
+                )
+            }
+            
+            _uiState.update { it.copy(isLoading = false, successMessage = "Datos extraídos") }
+            onResult(mockItem)
+        }
+    }
+
+    /**
+     * Simulates scanning a nutrition label using OCR.
+     */
+    fun simulateScanLabel(onResult: (Int, Float, Float, Float) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            kotlinx.coroutines.delay(2000) // Realistic scanning delay
+            
+            // Randomly simulate a healthy snack label
+            val cal = 240
+            val prot = 8.5f
+            val carb = 32.0f
+            val fat = 6.0f
+            
+            _uiState.update { it.copy(isLoading = false, successMessage = "Tabla escaneada con éxito") }
+            onResult(cal, prot, carb, fat)
+        }
+    }
+
     fun clearMessages() {
         _uiState.update { 
             it.copy(successMessage = null, error = null) 

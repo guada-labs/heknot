@@ -78,6 +78,7 @@ fun NutritionScreen(
     var showFoodItemForm by remember { mutableStateOf(false) }
     var showAddOptions by remember { mutableStateOf(false) }
     var showWaterDialog by remember { mutableStateOf(false) }
+    var showMealScanner by remember { mutableStateOf(false) }
     var editingFoodItem by remember { mutableStateOf<FoodItem?>(null) }
     var isFabExpanded by remember { mutableStateOf(false) }
 
@@ -361,7 +362,7 @@ fun NutritionScreen(
                 onDismiss = { showAddOptions = false },
                 onNavigateToMealPhoto = {
                     showAddOptions = false
-                     // TODO: Navigate to AI Meal Scanner
+                    showMealScanner = true
                 },
                 onNavigateToManualBuilder = {
                     showAddOptions = false
@@ -387,6 +388,12 @@ fun NutritionScreen(
                     if (shouldLogDirectly) viewModel.logFoodItemAsMeal(foodItem)
                     showFoodItemForm = false
                     editingFoodItem = null
+                },
+                onSmartParse = { description, callback ->
+                    viewModel.parseFoodDescription(description, callback)
+                },
+                onScanLabel = { callback ->
+                    viewModel.simulateScanLabel(callback)
                 }
             )
         }
@@ -397,6 +404,29 @@ fun NutritionScreen(
                 onConfirm = { amount ->
                     waterViewModel.addWater(amount)
                     showWaterDialog = false
+                }
+            )
+        }
+
+        if (showMealScanner) {
+            MealPhotoScannerSheet(
+                onDismiss = { showMealScanner = false },
+                onResult = { description, cal, prot, carb, fat ->
+                    // Logic to log the AI detected meal
+                    viewModel.logMealFromFoodItem(
+                        foodItem = com.heknot.app.data.local.database.entity.FoodItem(
+                            name = description,
+                            calories = cal,
+                            protein = prot,
+                            carbs = carb,
+                            fat = fat,
+                            servingSize = 100f, // Default serving size from AI scan
+                            servingUnit = com.heknot.app.data.local.database.entity.ServingUnit.GRAMS
+                        ),
+                        servings = 1.0f,
+                        mealType = com.heknot.app.data.local.database.entity.MealType.LUNCH // Default to lunch for simulator
+                    )
+                    showMealScanner = false
                 }
             )
         }
