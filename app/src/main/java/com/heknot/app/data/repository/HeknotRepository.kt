@@ -35,6 +35,7 @@ interface HeknotRepository {
     suspend fun updateWorkout(workoutLog: WorkoutLog): Int
     suspend fun deleteWorkout(workoutLog: WorkoutLog): Int
     fun getTotalCaloriesBurnedByDate(date: LocalDate): Flow<Int?>
+    fun getWorkoutsByDate(date: LocalDate): Flow<List<WorkoutLog>>
     
     // --- Meals ---
     fun getAllMeals(): Flow<List<MealLog>>
@@ -48,6 +49,7 @@ interface HeknotRepository {
 
     // --- Water ---
     fun getWaterLogsByDate(date: LocalDate): Flow<List<WaterLog>>
+    fun getAllWaterLogs(): Flow<List<WaterLog>>
     fun getTotalWaterByDate(date: LocalDate): Flow<Int?>
     suspend fun insertWaterLog(waterLog: WaterLog): Long
     suspend fun deleteWaterLog(waterLog: WaterLog): Int

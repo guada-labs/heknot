@@ -68,6 +68,9 @@ class OfflineHeknotRepository(private val database: HeknotDatabase) : HeknotRepo
     override fun getTotalCaloriesBurnedByDate(date: LocalDate): Flow<Int?> =
         database.workoutDao().getTotalCaloriesBurnedByDate(date)
 
+    override fun getWorkoutsByDate(date: LocalDate): Flow<List<WorkoutLog>> =
+        database.workoutDao().getWorkoutsByDate(date)
+
     // --- Meals ---
     override fun getAllMeals(): Flow<List<MealLog>> =
         database.mealDao().getAllMeals()
@@ -96,6 +99,9 @@ class OfflineHeknotRepository(private val database: HeknotDatabase) : HeknotRepo
     // --- Water ---
     override fun getWaterLogsByDate(date: LocalDate): Flow<List<WaterLog>> =
         database.waterDao().getWaterLogsByDate(date)
+
+    override fun getAllWaterLogs(): Flow<List<WaterLog>> =
+        database.waterDao().getAllWaterLogs()
 
     override fun getTotalWaterByDate(date: LocalDate): Flow<Int?> =
         database.waterDao().getTotalWaterByDate(date)

@@ -16,6 +16,7 @@ data class UserProfile(
     val gender: Gender? = null,
     val activityLevel: ActivityLevel = ActivityLevel.MODERATE,
     val fitnessGoal: FitnessGoal = FitnessGoal.MAINTAIN_WEIGHT,
+    val waterGoal: Int? = null, // Custom water goal override
     
     // Optional anthropometry (for body fat estimation)
     val neckCm: Float? = null,

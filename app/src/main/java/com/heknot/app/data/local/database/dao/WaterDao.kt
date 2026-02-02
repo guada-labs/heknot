@@ -7,11 +7,15 @@ import java.time.LocalDate
 
 @Dao
 interface WaterDao {
-    @Query("SELECT * FROM water_logs WHERE date = :date")
+    // We assume dateTime is stored as TEXT in ISO format, so we can use LIKE to match the date prefix.
+    @Query("SELECT * FROM water_logs WHERE dateTime LIKE :date || '%'")
     fun getWaterLogsByDate(date: LocalDate): Flow<List<WaterLog>>
 
-    @Query("SELECT SUM(amountMl) FROM water_logs WHERE date = :date")
+    @Query("SELECT SUM(amountMl) FROM water_logs WHERE dateTime LIKE :date || '%'")
     fun getTotalWaterByDate(date: LocalDate): Flow<Int?>
+
+    @Query("SELECT * FROM water_logs ORDER BY dateTime DESC")
+    fun getAllWaterLogs(): Flow<List<WaterLog>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWaterLog(waterLog: WaterLog): Long

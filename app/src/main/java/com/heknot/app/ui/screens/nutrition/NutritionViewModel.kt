@@ -481,6 +481,29 @@ class NutritionViewModel(
         }
     }
 
+    /**
+     * Helper to log a food item immediately with smart defaults
+     */
+    fun logFoodItemAsMeal(foodItem: FoodItem) {
+        val type = determineMealType(LocalDateTime.now())
+        logMealFromFoodItem(
+            foodItem = foodItem,
+            servings = 1.0f,
+            mealType = type,
+            dateTime = LocalDateTime.now()
+        )
+    }
+    
+    private fun determineMealType(dateTime: LocalDateTime): MealType {
+        val hour = dateTime.hour
+        return when (hour) {
+            in 5..10 -> MealType.BREAKFAST
+            in 11..15 -> MealType.LUNCH
+            in 18..22 -> MealType.DINNER
+            else -> MealType.SNACK
+        }
+    }
+
     // --- Utility ---
 
     fun clearMessages() {

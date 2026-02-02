@@ -3,6 +3,7 @@ package com.heknot.app.ui.screens.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.heknot.app.data.local.database.entity.MealLog
+import com.heknot.app.data.local.database.entity.WaterLog
 import com.heknot.app.data.local.database.entity.WeightEntry
 import com.heknot.app.data.local.database.entity.WorkoutLog
 import com.heknot.app.data.repository.HeknotRepository
@@ -31,6 +32,10 @@ sealed class HistoryItem {
         override val date: LocalDate = log.dateTime.toLocalDate()
         override val dateTime: LocalDateTime = log.dateTime
     }
+    data class Water(val log: WaterLog) : HistoryItem() {
+        override val date: LocalDate = log.date
+        override val dateTime: LocalDateTime = log.dateTime
+    }
 }
 
 class HistoryViewModel(
@@ -40,13 +45,15 @@ class HistoryViewModel(
     val historyItems: StateFlow<List<HistoryItem>> = combine(
         repository.getAllWeights(),
         repository.getAllWorkouts(),
-        repository.getAllMeals()
-    ) { weights, workouts, meals ->
+        repository.getAllMeals(),
+        repository.getAllWaterLogs()
+    ) { weights, workouts, meals, waterLogs ->
         val items = mutableListOf<HistoryItem>()
         
         items.addAll(weights.map { HistoryItem.Weight(it) })
         items.addAll(workouts.map { HistoryItem.Workout(it) })
         items.addAll(meals.map { HistoryItem.Meal(it) })
+        items.addAll(waterLogs.map { HistoryItem.Water(it) })
         
         // Ordenar por LocalDateTime
         items.sortedByDescending { it.dateTime }
@@ -63,6 +70,7 @@ class HistoryViewModel(
                 is HistoryItem.Weight -> repository.deleteWeight(item.entry)
                 is HistoryItem.Workout -> repository.deleteWorkout(item.log)
                 is HistoryItem.Meal -> repository.deleteMeal(item.log)
+                is HistoryItem.Water -> repository.deleteWaterLog(item.log)
             }
         }
     }

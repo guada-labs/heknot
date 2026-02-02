@@ -153,4 +153,15 @@ class Converters {
     fun toRecipeDifficulty(difficultyString: String): RecipeDifficulty {
         return RecipeDifficulty.valueOf(difficultyString)
     }
+
+    // --- BeverageType Enum ---
+    @TypeConverter
+    fun fromBeverageType(type: com.heknot.app.data.local.database.entity.BeverageType): String {
+        return type.name
+    }
+
+    @TypeConverter
+    fun toBeverageType(typeString: String): com.heknot.app.data.local.database.entity.BeverageType {
+        return com.heknot.app.data.local.database.entity.BeverageType.valueOf(typeString)
+    }
 }

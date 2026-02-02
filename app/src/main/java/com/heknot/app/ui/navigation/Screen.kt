@@ -11,6 +11,7 @@ sealed class Screen(val route: String, val label: String = "", val icon: ImageVe
     data object Nutrition : Screen("nutrition", "Nutrición", Icons.Default.Restaurant)
     data object Chart : Screen("chart", "Estadísticas", Icons.Default.BarChart)
     data object Settings : Screen("settings", "Ajustes", Icons.Default.Settings)
+    data object Water : Screen("water", "Hidratación", Icons.Default.WaterDrop)
     data object History : Screen("history")
     
     // Nutrition Sub-screens

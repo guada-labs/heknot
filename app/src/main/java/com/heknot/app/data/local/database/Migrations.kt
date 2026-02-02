@@ -148,4 +148,30 @@ object Migrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_meal_logs_recipeId` ON `meal_logs` (`recipeId`)")
         }
     }
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Create new water_logs table with dateTime
+            db.execSQL("CREATE TABLE IF NOT EXISTS `water_logs_new` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `amountMl` INTEGER NOT NULL, `dateTime` TEXT NOT NULL)")
+            
+            // Copy data, appending default time T00:00:00 to the date string
+            db.execSQL("""
+                INSERT INTO `water_logs_new` (`id`, `amountMl`, `dateTime`)
+                SELECT `id`, `amountMl`, `date` || 'T00:00:00' FROM `water_logs`
+            """)
+            
+            // Drop old table and rename new one
+            db.execSQL("DROP TABLE `water_logs`")
+            db.execSQL("ALTER TABLE `water_logs_new` RENAME TO `water_logs`")
+        }
+    }
+
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Add waterGoal to UserProfile
+            db.execSQL("ALTER TABLE `user_profile` ADD COLUMN `waterGoal` INTEGER")
+            
+            // Add type to WaterLog default to WATER
+            db.execSQL("ALTER TABLE `water_logs` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'WATER'")
+        }
+    }
 }

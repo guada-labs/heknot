@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -118,6 +119,7 @@ fun HistoryScreen(
                             is HistoryItem.Weight -> "weight_${item.entry.id}"
                             is HistoryItem.Workout -> "workout_${item.log.id}"
                             is HistoryItem.Meal -> "meal_${item.log.id}"
+                            is HistoryItem.Water -> "water_${item.log.id}"
                         }
                     }
                 ) { item ->
@@ -206,6 +208,13 @@ fun HistoryCard(item: HistoryItem) {
             item.log.type.name,
             "${item.dateTime.format(dateFormatter)}, ${item.dateTime.format(timeFormatter)} • ${item.log.description}",
             "Comida"
+        )
+        is HistoryItem.Water -> Triple5(
+            Icons.Default.WaterDrop,
+            Color(0xFF03A9F4), // Light Blue for water
+            "Agua",
+            "${item.dateTime.format(dateFormatter)}, ${item.dateTime.format(timeFormatter)}",
+            "${item.log.amountMl} ml"
         )
     }
 

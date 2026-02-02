@@ -6,72 +6,29 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Scale
-import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.LocalDining
-import androidx.compose.material.icons.rounded.LocalPizza
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.heknot.app.data.local.database.entity.FoodCategory
 import com.heknot.app.data.local.database.entity.FoodItem
 import com.heknot.app.data.local.database.entity.ServingUnit
@@ -81,419 +38,374 @@ import com.heknot.app.data.local.database.entity.ServingUnit
 fun FoodItemFormSheet(
     existingItem: FoodItem? = null,
     onDismiss: () -> Unit,
-    onConfirm: (FoodItem) -> Unit
+    onConfirm: (FoodItem, Boolean) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val isEditMode = existingItem != null && existingItem.id != 0L
     
-    // Identificadores de colores para darle vida
-    val proteinColor = Color(0xFF4CAF50)
-    val carbsColor = Color(0xFFFF9800)
-    val fatColor = Color(0xFFF44336)
-    
-    // Local state for form fields
+    // State
     var name by remember { mutableStateOf(existingItem?.name ?: "") }
-    var brand by remember { mutableStateOf(existingItem?.brand ?: "") }
-    
-    var selectedCategory by remember { mutableStateOf(existingItem?.category ?: FoodCategory.OTHER) }
-    var categoryExpanded by remember { mutableStateOf(false) }
-    
-    var servingSize by remember { mutableStateOf(existingItem?.servingSize?.toString() ?: "100") }
-    var selectedUnit by remember { mutableStateOf(existingItem?.servingUnit ?: ServingUnit.GRAMS) }
-    var unitExpanded by remember { mutableStateOf(false) }
-
-    // Toggle: Input Per 100g vs Per Serving
-    // Default to Per Serving unless explicitly requested? Actually per 100g is very common.
-    var isPer100gMode by remember { mutableStateOf(false) }
-    
-    // Macros
     var calories by remember { mutableStateOf(existingItem?.calories?.toString() ?: "") }
     var protein by remember { mutableStateOf(existingItem?.protein?.toString() ?: "") }
     var carbs by remember { mutableStateOf(existingItem?.carbs?.toString() ?: "") }
     var fat by remember { mutableStateOf(existingItem?.fat?.toString() ?: "") }
+    
+    // Extended Details
+    var brand by remember { mutableStateOf(existingItem?.brand ?: "") }
+    var showDetails by remember { mutableStateOf(false) } // Default collapsed
 
+    // Smart Features State
+    var smartDescription by remember { mutableStateOf("") }
+    var isGeneratingPixelArt by remember { mutableStateOf(false) }
+    
+    // Detailed fields (defaulting if new)
+    var selectedCategory by remember { mutableStateOf(existingItem?.category ?: FoodCategory.OTHER) }
+    var servingSize by remember { mutableStateOf(existingItem?.servingSize?.toString() ?: "100") }
+    var selectedUnit by remember { mutableStateOf(existingItem?.servingUnit ?: ServingUnit.GRAMS) }
     var fiber by remember { mutableStateOf(existingItem?.fiber?.toString() ?: "") }
     var sugar by remember { mutableStateOf(existingItem?.sugar?.toString() ?: "") }
     var sodium by remember { mutableStateOf(existingItem?.sodium?.toString() ?: "") }
 
+    // Colors
+    val proteinColor = Color(0xFF4CAF50)
+    val carbsColor = Color(0xFFFF9800)
+    val fatColor = Color(0xFFF44336)
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp
+        dragHandle = { BottomSheetDefaults.DragHandle() }
     ) {
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding() // Avoid keyboard overlap
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp)
+                .animateContentSize() // Smooth transition when toggling details
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Header con estilo - Más limpio
+            Spacer(modifier = Modifier.height(8.dp)) // Initial breathing room
+
+            // --- HEADER: IMAGE & IDENTITY ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        if (existingItem != null) "Editar Producto" else "Nuevo Producto",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    )
-                    Text(
-                        "Información nutricional",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(
-                    onClick = onDismiss,
+                // Visual Avatar (Pixel Art / Photo / Icon)
+                Box(
                     modifier = Modifier
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f), MaterialTheme.shapes.extraLarge)
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { isGeneratingPixelArt = !isGeneratingPixelArt }, // Toggle simulator
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = "Cerrar")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                // --- SECCIÓN 1: IDENTIDAD (CARD) ---
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        FormSectionLabel("DETALLES DEL PRODUCTO", Icons.Rounded.Fastfood)
-                        
-                        OutlinedTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = { Text("Nombre") },
-                            placeholder = { Text("Ej. Avena Quaker") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                            shape = MaterialTheme.shapes.medium
-                        )
-                        
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            OutlinedTextField(
-                                value = brand,
-                                onValueChange = { brand = it },
-                                label = { Text("Marca") },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                                shape = MaterialTheme.shapes.medium
-                            )
-
-                            // Category Selector
-                            Box(modifier = Modifier.weight(1f)) {
-                                OutlinedTextField(
-                                    value = selectedCategory.name, 
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    label = { Text("Categoría") },
-                                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, null) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    enabled = false,
-                                    shape = MaterialTheme.shapes.medium,
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .matchParentSize()
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .clickable { categoryExpanded = true }
-                                )
-                                DropdownMenu(
-                                    expanded = categoryExpanded,
-                                    onDismissRequest = { categoryExpanded = false },
-                                    modifier = Modifier.fillMaxWidth(0.5f)
-                                ) {
-                                    FoodCategory.values().forEach { category ->
-                                        DropdownMenuItem(
-                                            text = { Text(category.name) },
-                                            onClick = {
-                                                selectedCategory = category
-                                                categoryExpanded = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                    if (isGeneratingPixelArt) {
+                        // Simulating Local Generation
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                    } else {
+                        val icon = if (selectedCategory == FoodCategory.BEVERAGES) Icons.Default.WaterDrop else Icons.Rounded.Fastfood
+                        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
                     }
-                }
-
-                // --- SECCIÓN 2: VALORES NUTRICIONALES (CARD ESTILO ETIQUETA) ---
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)), // Borde negro grueso fake
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Header Etiqueta
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                "Nutrition Facts",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
-                                    fontWeight = FontWeight.Black
-                                )
-                            )
-                            // Toggle 100g
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = if (isPer100gMode) "100g/ml" else "Porción",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Switch(
-                                    checked = isPer100gMode,
-                                    onCheckedChange = { isPer100gMode = it },
-                                    modifier = Modifier.scale(0.8f) // Custom fun needed or just standard size
-                                )
-                            }
-                        }
-                        
-                        Divider(thickness = 4.dp, color = MaterialTheme.colorScheme.onSurface)
-
-                        // Serving Info
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                             Text(
-                                "Tamaño Porción",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedTextField(
-                                    value = servingSize,
-                                    onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) servingSize = it },
-                                    modifier = Modifier.width(80.dp),
-                                    singleLine = true,
-                                    textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                // Unit
-                                Box(modifier = Modifier.width(100.dp)) {
-                                    Text(
-                                        text = selectedUnit.name,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { unitExpanded = true }
-                                            .padding(8.dp),
-                                        textAlign = TextAlign.End,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    DropdownMenu(
-                                        expanded = unitExpanded,
-                                        onDismissRequest = { unitExpanded = false }
-                                    ) {
-                                        ServingUnit.values().forEach { unit ->
-                                            DropdownMenuItem(
-                                                text = { Text(unit.name) },
-                                                onClick = {
-                                                    selectedUnit = unit
-                                                    unitExpanded = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.onSurface)
-                        
-                        // Calories row
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column {
-                                Text("Amount per serving", style = MaterialTheme.typography.labelSmall)
-                                Text("Calories", style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black))
-                            }
-                            OutlinedTextField(
-                                value = calories,
-                                onValueChange = { if (it.all { char -> char.isDigit() }) calories = it },
-                                modifier = Modifier.width(100.dp),
-                                singleLine = true,
-                                textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black, textAlign = TextAlign.End),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.Transparent,
-                                    unfocusedBorderColor = Color.Transparent
-                                )
-                            )
-                        }
-
-                        Divider(thickness = 2.dp, color = MaterialTheme.colorScheme.onSurface)
-
-                        // Macros rows (Label style)
-                        NutriRow("Total Fat", fat, "g", { fat = it }, isBold = true)
-                        NutriRow("Total Carbohydrate", carbs, "g", { carbs = it }, isBold = true)
-                        NutriRow("   Dietary Fiber", fiber, "g", { fiber = it })
-                        NutriRow("   Total Sugars", sugar, "g", { sugar = it })
-                        NutriRow("Protein", protein, "g", { protein = it }, isBold = true)
-                        
-                        Divider(thickness = 4.dp, color = MaterialTheme.colorScheme.onSurface)
-                        
-                        NutriRow("Sodium", sodium, "mg", { sodium = it }, isBold = true)
+                    
+                    // Edit Badge
+                    Box(modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).background(MaterialTheme.colorScheme.primary, CircleShape).padding(4.dp)) {
+                         Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(10.dp))
                     }
                 }
                 
-                // Helper text
-                if (isPer100gMode) {
-                   Text(
-                       "⚠️ Ingresando datos por 100g/ml. Se calcularán automáticamente para la porción de $servingSize ${selectedUnit.name}.",
-                       style = MaterialTheme.typography.bodySmall,
-                       color = MaterialTheme.colorScheme.tertiary
-                   )
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        if (isEditMode) "Editar Ingrediente" else "Nuevo Ingrediente", 
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Define la base de tus comidas",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Buttons
+            // --- SMART DESCRIPTION (AUTO-COMPLETE) ---
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        "✨ Autocompletar (Descripción)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = smartDescription,
+                        onValueChange = { smartDescription = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Ej. Galleta Tosh de miel...", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        ),
+                        textStyle = MaterialTheme.typography.bodyMedium,
+                        trailingIcon = {
+                             if (smartDescription.isNotEmpty()) {
+                                 IconButton(onClick = { /* TODO: Trigger Gemini Nano */ }) {
+                                     Icon(Icons.Default.AutoAwesome, "Generar", tint = MaterialTheme.colorScheme.primary)
+                                 }
+                             }
+                        }
+                    )
+                }
+            }
+
+            // --- SCANNER SHORTCUT ---
+            OutlinedButton(
+                onClick = { /* TODO: Scan Label */ },
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Icon(Icons.Default.DocumentScanner, null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Escanear Tabla Nutricional")
+            }
+
+            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha=0.5f))
+
+            // --- BASIC FIELDS ---
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            // Calories
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.LocalFireDepartment, null, tint = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedTextField(
+                    value = calories,
+                    onValueChange = { if (it.all { char -> char.isDigit() }) calories = it },
+                    label = { Text("Calorías") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+            }
+
+            // Macros (Compact Row)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                
+                // Helper Composable for Macros
+                @Composable
+                fun MacroField(label: String, valStr: String, color: Color, onValChange: (String) -> Unit) {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(color.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(label, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+                        OutlinedTextField(
+                            value = valStr,
+                            onValueChange = onValChange,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedBorderColor = Color.Transparent,
+                                unfocusedBorderColor = Color.Transparent
+                            ),
+                            textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.Center)
+                        )
+                    }
+                }
+
+                MacroField("Carbs", carbs, carbsColor) { carbs = it }
+                MacroField("Prot", protein, proteinColor) { protein = it }
+                MacroField("Grasa", fat, fatColor) { fat = it }
+            }
+
+            // --- EXPANDABLE DETAILS ---
+            AnimatedVisibility(visible = showDetails) {
+                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                         OutlinedTextField(
+                            value = brand,
+                            onValueChange = { brand = it },
+                            label = { Text("Marca (Opcional)") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = servingSize,
+                            onValueChange = { servingSize = it },
+                            label = { Text("Porción (${selectedUnit.name})") },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        )
+                    }
+                   
+                    // Micros
+                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                         OutlinedTextField(value = fiber, onValueChange = { fiber = it }, label = { Text("Fibra") }, modifier = Modifier.weight(1f))
+                         OutlinedTextField(value = sugar, onValueChange = { sugar = it }, label = { Text("Azúcar") }, modifier = Modifier.weight(1f))
+                         OutlinedTextField(value = sodium, onValueChange = { sodium = it }, label = { Text("Sodio") }, modifier = Modifier.weight(1f))
+                     }
+                 }
+            }
+            
+            TextButton(
+                onClick = { showDetails = !showDetails },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text(if (showDetails) "Menos detalles" else "Más detalles")
+                Icon(if (showDetails) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown, null)
+            }
+
+            // --- ACTIONS ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text("Cancelar")
-                }
                 Button(
                     onClick = {
-                        if (name.isNotBlank() && calories.isNotBlank()) {
-                            // Logic to handle Per 100g vs Per Serving conversion
-                            val servingFactor = if (isPer100gMode) {
-                                (servingSize.toFloatOrNull() ?: 100f) / 100f
-                            } else {
-                                1f
-                            }
-                            
-                            val newItem = FoodItem(
-                                id = existingItem?.id ?: 0,
+                         if (name.isNotEmpty() && calories.isNotEmpty()) {
+                            val item = FoodItem(
+                                id = existingItem?.id ?: 0L,
                                 name = name,
-                                brand = brand.takeIf { it.isNotBlank() },
+                                calories = calories.toIntOrNull() ?: 0,
+                                protein = protein.toFloatOrNull() ?: 0f,
+                                carbs = carbs.toFloatOrNull() ?: 0f,
+                                fat = fat.toFloatOrNull() ?: 0f,
+                                brand = brand,
                                 category = selectedCategory,
                                 servingSize = servingSize.toFloatOrNull() ?: 100f,
                                 servingUnit = selectedUnit,
-                                calories = ((calories.toIntOrNull() ?: 0) * servingFactor).toInt(),
-                                protein = (protein.toFloatOrNull() ?: 0f) * servingFactor,
-                                carbs = (carbs.toFloatOrNull() ?: 0f) * servingFactor,
-                                fat = (fat.toFloatOrNull() ?: 0f) * servingFactor,
-                                fiber = (fiber.toFloatOrNull() ?: 0f) * servingFactor,
-                                sugar = (sugar.toFloatOrNull() ?: 0f) * servingFactor,
-                                sodium = (sodium.toFloatOrNull() ?: 0f) * servingFactor,
-                                isCustom = true,
-                                createdAt = existingItem?.createdAt ?: System.currentTimeMillis()
+                                fiber = fiber.toFloatOrNull() ?: 0f,
+                                sugar = sugar.toFloatOrNull() ?: 0f,
+                                sodium = sodium.toFloatOrNull() ?: 0f
                             )
-                            onConfirm(newItem)
+                            onConfirm(item, false) // Save only
                         }
                     },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    enabled = name.isNotBlank() && calories.isNotBlank(),
-                    shape = MaterialTheme.shapes.medium,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer)
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (existingItem != null) "Actualizar" else "Guardar")
+                    Text("Guardar")
+                }
+
+                Button(
+                    onClick = {
+                        if (name.isNotEmpty() && calories.isNotEmpty()) {
+                            val item = FoodItem(
+                                id = existingItem?.id ?: 0L,
+                                name = name,
+                                calories = calories.toIntOrNull() ?: 0,
+                                protein = protein.toFloatOrNull() ?: 0f,
+                                carbs = carbs.toFloatOrNull() ?: 0f,
+                                fat = fat.toFloatOrNull() ?: 0f,
+                                brand = brand,
+                                category = selectedCategory,
+                                servingSize = servingSize.toFloatOrNull() ?: 100f,
+                                servingUnit = selectedUnit,
+                                fiber = fiber.toFloatOrNull() ?: 0f,
+                                sugar = sugar.toFloatOrNull() ?: 0f,
+                                sodium = sodium.toFloatOrNull() ?: 0f
+                            )
+                            onConfirm(item, true) // Save & Log
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Registrar")
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormSectionLabel(text: String, icon: ImageVector) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
-@Composable
-fun NutriRow(
-    label: String, 
-    value: String, 
-    unit: String, 
-    onValueChange: (String) -> Unit, 
-    isBold: Boolean = false
+fun AddMealOptionsSheet(
+    onDismiss: () -> Unit,
+    onNavigateToMealPhoto: () -> Unit,
+    onNavigateToManualBuilder: () -> Unit
 ) {
-    Column {
-        Divider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-        Row(
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp), // More breathing room
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(24.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                label, 
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
-                )
+                "Registrar Comida",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Invisible generic text field that looks like plain text editing
-                androidx.compose.foundation.text.BasicTextField(
-                    value = value,
-                    onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) onValueChange(it) },
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        textAlign = TextAlign.End,
-                        fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
-                    modifier = Modifier.width(60.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(unit, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            
+            // 1. Photo / AI Estimate (Meals)
+            Card(
+                onClick = onNavigateToMealPhoto,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                modifier = Modifier.fillMaxWidth().height(100.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            "Escanear / Foto",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            "Toma una foto a tu plato",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+
+            // 2. Manual / Recipe
+            OutlinedButton(
+                onClick = onNavigateToManualBuilder,
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(vertical = 16.dp)
+            ) {
+                Icon(Icons.Rounded.LocalDining, null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Armar Manualmente")
             }
         }
     }

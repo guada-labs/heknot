@@ -12,6 +12,7 @@ import com.heknot.app.ui.screens.nutrition.NutritionViewModel
 import com.heknot.app.ui.screens.onboarding.OnboardingViewModel
 import com.heknot.app.ui.screens.settings.SettingsViewModel
 import com.heknot.app.ui.screens.workout.WorkoutViewModel
+import com.heknot.app.ui.screens.water.WaterViewModel
 
 object AppViewModelProvider {
     val Factory = viewModelFactory {
@@ -68,6 +69,13 @@ object AppViewModelProvider {
         // Initializer for NutritionViewModel
         initializer {
             NutritionViewModel(
+                HeknotApplication().container.HeknotRepository
+            )
+        }
+
+        // Initializer for WaterViewModel
+        initializer {
+            WaterViewModel(
                 HeknotApplication().container.HeknotRepository
             )
         }

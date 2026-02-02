@@ -25,6 +25,9 @@ interface WorkoutDao {
     @Query("SELECT COUNT(*) FROM workout_logs WHERE date(dateTime) = :date")
     suspend fun getWorkoutCountByDate(date: LocalDate): Int
 
+    @Query("SELECT * FROM workout_logs WHERE date(dateTime) = :date")
+    fun getWorkoutsByDate(date: LocalDate): Flow<List<WorkoutLog>>
+
     @Query("SELECT SUM(caloriesBurned) FROM workout_logs WHERE date(dateTime) = :date")
     fun getTotalCaloriesBurnedByDate(date: LocalDate): Flow<Int?>
     

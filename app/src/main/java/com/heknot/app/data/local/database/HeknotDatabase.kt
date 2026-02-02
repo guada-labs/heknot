@@ -38,7 +38,7 @@ import com.heknot.app.data.local.database.entity.WorkoutLog
         Recipe::class,
         RecipeIngredient::class
     ],
-    version = 11,
+    version = 13,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -69,7 +69,9 @@ abstract class HeknotDatabase : RoomDatabase() {
                     Migrations.MIGRATION_7_8, 
                     Migrations.MIGRATION_8_9,
                     Migrations.MIGRATION_9_10,
-                    Migrations.MIGRATION_10_11
+                    Migrations.MIGRATION_10_11,
+                    Migrations.MIGRATION_11_12,
+                    Migrations.MIGRATION_12_13
                 )
                 .fallbackToDestructiveMigration() // Fallback if other migrations are missing
                 .build()
