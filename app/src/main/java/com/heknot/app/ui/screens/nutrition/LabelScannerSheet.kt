@@ -146,7 +146,13 @@ fun LabelScannerSheet(
                             onCapture = {
                                 previewView?.bitmap?.let { bitmap ->
                                     isAnalyzing = true
-                                    processImageForOcr(bitmap) { text ->
+                                    
+                                    // 1. High-Fidelity Preprocessing (Crop -> CLAHE -> Binarize)
+                                    val cropped = com.heknot.app.util.ImageUtils.cropToRegion(bitmap, 0.05f, 0.15f, 0.95f, 0.8f)
+                                    val enhanced = com.heknot.app.util.ImageUtils.enhanceForOcr(cropped)
+                                    
+                                    // 2. High-Precision OCR
+                                    processImageForOcr(enhanced) { text ->
                                         currentFullText = text
                                         isAnalyzing = false
                                         currentStep = ScannerStep.REVIEW_OCR
@@ -328,11 +334,35 @@ fun InfoChip(label: String, value: String) {
 }
 
 private fun processImageForOcr(bitmap: android.graphics.Bitmap, onTextFound: (String) -> Unit) {
+    // Use Latin script with bundled support for maximum accuracy
     val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    val image = InputImage.fromBitmap(bitmap, 0)
-    recognizer.process(image)
-        .addOnSuccessListener { visionText ->
-            onTextFound(visionText.text)
+    val imageNormal = InputImage.fromBitmap(bitmap, 0)
+    
+    // First Pass: Normal
+    recognizer.process(imageNormal)
+        .addOnSuccessListener { visionTextNormal ->
+            val normalText = visionTextNormal.text
+            
+            // Second Pass: Inverted (Handles white-on-black labels common in some brands)
+            val invertedBitmap = com.heknot.app.util.ImageUtils.invert(bitmap)
+            val imageInverted = InputImage.fromBitmap(invertedBitmap, 0)
+            
+            recognizer.process(imageInverted)
+                .addOnSuccessListener { visionTextInverted ->
+                    val invertedText = visionTextInverted.text
+                    
+                    // Combine or choose best (heuristic: more characters or more keywords)
+                    val bestText = if (invertedText.length > normalText.length * 1.5) invertedText else normalText
+                    
+                    val cleanText = bestText
+                        .replace(Regex("([^\\n])\\n([^\\n])"), "$1 $2")
+                        .replace("|", "")
+                    
+                    onTextFound(cleanText)
+                }
+                .addOnFailureListener {
+                    onTextFound(normalText)
+                }
         }
         .addOnFailureListener {
             onTextFound("")

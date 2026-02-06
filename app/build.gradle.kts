@@ -99,7 +99,6 @@ dependencies {
     implementation(libs.mediapipe.tasks.vision)
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.gpu)
-    implementation(libs.tensorflow.lite.support)
 }
 
 ksp {

@@ -41,7 +41,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import com.heknot.app.util.Pixelator
+import com.heknot.app.util.GenerativePixelArtGenerator
 import com.heknot.app.util.GeminiNutritionParser
 import com.heknot.app.util.ScannedNutrition
 import androidx.compose.ui.graphics.asImageBitmap
@@ -78,6 +78,8 @@ fun FoodItemFormSheet(
     var showLabelScanner by remember { mutableStateOf(false) }
     var foodImageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var showVisualSelector by remember { mutableStateOf(false) }
+    var showAIWorkshop by remember { mutableStateOf(false) }
+    var workshopInitialBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     
     // Visual Identity State
@@ -90,6 +92,7 @@ fun FoodItemFormSheet(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val geminiParser = remember { GeminiNutritionParser(context) }
+    val pixelArtGenerator = remember { GenerativePixelArtGenerator(context) }
 
     
     // Detailed fields (defaulting if new)
@@ -205,7 +208,7 @@ fun FoodItemFormSheet(
                     if (originalBitmap != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Pixel Grid: ${pixelGridSize.toInt()}",
+                            "Resolución: ${pixelGridSize.toInt()}px",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -215,12 +218,14 @@ fun FoodItemFormSheet(
                                 pixelGridSize = it 
                                 scope.launch {
                                     originalBitmap?.let { bitmap ->
-                                        foodImageBitmap = Pixelator.pixelate(bitmap, pixelSize = it.toInt())
+                                        isGeneratingPixelArt = true
+                                        foodImageBitmap = pixelArtGenerator.generatePixelArt(bitmap, it.toInt()).asImageBitmap()
+                                        isGeneratingPixelArt = false
                                     }
                                 }
                             },
-                            valueRange = 5f..50f,
-                            steps = 9
+                            valueRange = 16f..128f,
+                            steps = 3 // 16, 32, 64, 128
                         )
                     }
                 }
@@ -332,15 +337,20 @@ fun FoodItemFormSheet(
                         showVisualSelector = false
                     },
                     onPhotoCaptured = { bitmap ->
-                        originalBitmap = bitmap
-                        foodImageBitmap = bitmap.asImageBitmap()
+                        workshopInitialBitmap = bitmap
                         showVisualSelector = false
-                        // Auto-pixelate if user likes the style
-                        scope.launch {
-                            isGeneratingPixelArt = true
-                            foodImageBitmap = Pixelator.pixelate(bitmap, pixelSize = pixelGridSize.toInt())
-                            isGeneratingPixelArt = false
-                        }
+                        showAIWorkshop = true
+                    }
+                )
+            }
+
+            if (showAIWorkshop && workshopInitialBitmap != null) {
+                AIWorkshopSheet(
+                    initialBitmap = workshopInitialBitmap!!,
+                    onDismiss = { showAIWorkshop = false },
+                    onResult = { result ->
+                        foodImageBitmap = result.asImageBitmap()
+                        showAIWorkshop = false
                     }
                 )
             }
