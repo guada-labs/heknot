@@ -10,28 +10,28 @@ enum class ActivityLevel(
     val description: String
 ) {
     SEDENTARY(
-        "Sedentary",
+        "Sedentario",
         1.2f,
-        "Little or no exercise, desk job"
+        "Poco o nada de ejercicio, trabajo de escritorio"
     ),
     LIGHT(
-        "Light",
+        "Ligero",
         1.375f,
-        "Light exercise 1-3 days/week"
+        "Ejercicio ligero 1-3 días a la semana"
     ),
     MODERATE(
-        "Moderate",
+        "Moderado",
         1.55f,
-        "Moderate exercise 3-5 days/week"
+        "Ejercicio moderado 3-5 días a la semana"
     ),
     ACTIVE(
-        "Active",
+        "Activo",
         1.725f,
-        "Intense exercise 6-7 days/week"
+        "Ejercicio intenso 6-7 días a la semana"
     ),
     VERY_ACTIVE(
-        "Very Active",
+        "Muy Activo",
         1.9f,
-        "Very intense exercise, physical job or training 2 times per day"
+        "Ejercicio muy intenso, trabajo físico o entrenamiento 2 veces al día"
     )
 }

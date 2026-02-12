@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
@@ -49,9 +51,18 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddWeightDialog(
     onDismiss: () -> Unit,
-    onConfirm: (LocalDateTime, Float) -> Unit
+    onConfirm: (LocalDateTime, Float, Float?, Float?, Float?, Float?, Float?, Float?, Float?) -> Unit
 ) {
     var weightInput by remember { mutableStateOf("") }
+    var neckInput by remember { mutableStateOf("") }
+    var waistInput by remember { mutableStateOf("") }
+    var hipInput by remember { mutableStateOf("") }
+    var chestInput by remember { mutableStateOf("") }
+    var armInput by remember { mutableStateOf("") }
+    var thighInput by remember { mutableStateOf("") }
+    var calfInput by remember { mutableStateOf("") }
+    
+    var showAdvanced by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf(LocalTime.now()) }
     
@@ -109,11 +120,16 @@ fun AddWeightDialog(
         )
     }
 
+    val scrollState = rememberScrollState()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Registrar Peso") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 OutlinedTextField(
                     value = weightInput,
                     onValueChange = { weightInput = it },
@@ -150,6 +166,81 @@ fun AddWeightDialog(
                         modifier = Modifier.weight(1f)
                     )
                 }
+
+                TextButton(
+                    onClick = { showAdvanced = !showAdvanced },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(if (showAdvanced) "Ver menos" else "Datos avanzados (opcional)")
+                }
+
+                if (showAdvanced) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = neckInput,
+                            onValueChange = { neckInput = it },
+                            label = { Text("Cuello (cm)") },
+                            supportingText = { Text("Justo debajo de la nuez") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = waistInput,
+                            onValueChange = { waistInput = it },
+                            label = { Text("Cintura (cm)") },
+                            supportingText = { Text("A la altura del ombligo") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = hipInput,
+                            onValueChange = { hipInput = it },
+                            label = { Text("Cadera (cm)") },
+                            supportingText = { Text("En la parte más ancha") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = chestInput,
+                            onValueChange = { chestInput = it },
+                            label = { Text("Pecho (cm)") },
+                            supportingText = { Text("Justo debajo de las axilas") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = armInput,
+                            onValueChange = { armInput = it },
+                            label = { Text("Brazo (cm)") },
+                            supportingText = { Text("Bíceps relajado") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = thighInput,
+                            onValueChange = { thighInput = it },
+                            label = { Text("Muslo (cm)") },
+                            supportingText = { Text("Parte superior de la pierna") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = calfInput,
+                            onValueChange = { calfInput = it },
+                            label = { Text("Pantorrilla (cm)") },
+                            supportingText = { Text("Parte más ancha") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
@@ -157,7 +248,17 @@ fun AddWeightDialog(
                 onClick = {
                     val weight = weightInput.toFloatOrNull()
                     if (weight != null) {
-                        onConfirm(LocalDateTime.of(selectedDate, selectedTime), weight)
+                        onConfirm(
+                            LocalDateTime.of(selectedDate, selectedTime), 
+                            weight,
+                            neckInput.toFloatOrNull(),
+                            waistInput.toFloatOrNull(),
+                            hipInput.toFloatOrNull(),
+                            chestInput.toFloatOrNull(),
+                            armInput.toFloatOrNull(),
+                            thighInput.toFloatOrNull(),
+                            calfInput.toFloatOrNull()
+                        )
                     }
                 },
                 enabled = weightInput.isNotEmpty()

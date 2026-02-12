@@ -19,6 +19,15 @@ interface HeknotRepository {
     suspend fun updateCurrentWeight(weight: Float): Int
     suspend fun updateDarkMode(enabled: Boolean?): Int
     suspend fun updateBiometricEnabled(enabled: Boolean): Int
+    suspend fun updateMeasurements(
+        neck: Float?, 
+        waist: Float?, 
+        hip: Float?,
+        chest: Float? = null,
+        arm: Float? = null,
+        thigh: Float? = null,
+        calf: Float? = null
+    ): Int
     
     // Weights
     fun getAllWeights(): Flow<List<WeightEntry>>

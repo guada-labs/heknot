@@ -34,4 +34,15 @@ interface UserProfileDao {
 
     @Query("UPDATE user_profile SET biometricEnabled = :enabled WHERE id = 1")
     suspend fun updateBiometricEnabled(enabled: Boolean): Int
+
+    @Query("UPDATE user_profile SET neckCm = :neck, waistCm = :waist, hipCm = :hip, chestCm = :chest, armCm = :arm, thighCm = :thigh, calfCm = :calf WHERE id = 1")
+    suspend fun updateMeasurements(
+        neck: Float?, 
+        waist: Float?, 
+        hip: Float?,
+        chest: Float?,
+        arm: Float?,
+        thigh: Float?,
+        calf: Float?
+    ): Int
 }

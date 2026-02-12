@@ -11,8 +11,12 @@ import com.heknot.app.ui.screens.history.HistoryScreen
 import com.heknot.app.ui.screens.home.HomeScreen
 import com.heknot.app.ui.screens.onboarding.OnboardingScreen
 import com.heknot.app.ui.screens.settings.SettingsScreen
+import com.heknot.app.ui.screens.profile.ProfileScreen
+import com.heknot.app.ui.screens.training.equipment.EquipmentScreen
 
 import com.heknot.app.ui.screens.main.MainScreen
+import com.heknot.app.ui.screens.training.catalog.PlanCatalogScreen
+import com.heknot.app.ui.screens.training.detail.WorkoutDetailScreen
 
 @Composable
 fun HeknotNavGraph(
@@ -44,12 +48,47 @@ fun HeknotNavGraph(
                 },
                 onNavigateToHistory = {
                     navController.navigate(Screen.History.route)
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                },
+                onNavigateToPlanCatalog = {
+                    navController.navigate(Screen.PlanCatalog.route)
+                },
+                onNavigateToWorkoutDetail = { id ->
+                    navController.navigate(Screen.WorkoutDetail.createRoute(id))
                 }
             )
         }
         
         composable(Screen.History.route) {
             HistoryScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateToEquipment = { navController.navigate(Screen.Equipment.route) }
+            )
+        }
+
+        composable(Screen.Equipment.route) {
+            EquipmentScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.PlanCatalog.route) {
+            PlanCatalogScreen(
+                onBack = { navController.popBackStack() },
+                onPlanClick = { id -> 
+                    navController.navigate(Screen.WorkoutDetail.createRoute(id)) 
+                }
+            )
+        }
+
+        composable(Screen.WorkoutDetail.route) {
+            WorkoutDetailScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

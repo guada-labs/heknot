@@ -5,11 +5,14 @@ import com.heknot.app.data.local.backup.BackupManager
 import com.heknot.app.data.local.database.HeknotDatabase
 import com.heknot.app.data.repository.OfflineHeknotRepository
 import com.heknot.app.data.repository.HeknotRepository
+import com.heknot.app.data.repository.TrainingRepository
+import com.heknot.app.data.repository.OfflineTrainingRepository
 
 interface AppContainer {
     val HeknotRepository: HeknotRepository
     val backupManager: BackupManager
     val exerciseRepository: com.heknot.app.data.repository.ExerciseRepository
+    val trainingRepository: TrainingRepository
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
@@ -24,5 +27,9 @@ class AppDataContainer(private val context: Context) : AppContainer {
 
     override val exerciseRepository: com.heknot.app.data.repository.ExerciseRepository by lazy {
         com.heknot.app.data.repository.AssetExerciseRepository(context)
+    }
+
+    override val trainingRepository: TrainingRepository by lazy {
+        OfflineTrainingRepository(HeknotDatabase.getDatabase(context).trainingDao())
     }
 }

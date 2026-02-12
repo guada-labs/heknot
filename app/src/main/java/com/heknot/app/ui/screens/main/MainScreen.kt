@@ -20,7 +20,10 @@ import com.heknot.app.ui.screens.nutrition.NutritionScreen
 @Composable
 fun MainScreen(
     onRestartApp: () -> Unit,
-    onNavigateToHistory: () -> Unit
+    onNavigateToHistory: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToPlanCatalog: () -> Unit,
+    onNavigateToWorkoutDetail: (Long) -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -116,7 +119,10 @@ fun MainScreen(
                 )
             }
             composable(Screen.Workout.route) {
-                WorkoutScreen()
+                WorkoutScreen(
+                    onNavigateToPlanCatalog = onNavigateToPlanCatalog,
+                    onNavigateToWorkoutDetail = onNavigateToWorkoutDetail
+                )
             }
             composable(Screen.Nutrition.route) {
                 NutritionScreen()
@@ -127,6 +133,7 @@ fun MainScreen(
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     onBack = null,
+                    onNavigateToProfile = onNavigateToProfile,
                     onRestartApp = onRestartApp
                 )
             }

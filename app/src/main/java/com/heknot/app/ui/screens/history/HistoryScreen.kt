@@ -84,8 +84,8 @@ fun HistoryScreen(
         if (showAddWeightDialog) {
             AddWeightDialog(
                 onDismiss = { showAddWeightDialog = false },
-                onConfirm = { dateTime, weight ->
-                    viewModel.addWeight(weight, dateTime)
+                onConfirm = { dateTime, weight, neck, waist, hip, chest, arm, thigh, calf ->
+                    viewModel.addWeight(weight, dateTime, neck, waist, hip, chest, arm, thigh, calf)
                     showAddWeightDialog = false
                 }
             )

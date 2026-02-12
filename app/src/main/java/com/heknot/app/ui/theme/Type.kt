@@ -44,10 +44,10 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
-        fontFamily = hagamBrandFontFamily,
+        fontFamily = PixelFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
@@ -58,10 +58,10 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = hagamBrandFontFamily,
+        fontFamily = PixelFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
         letterSpacing = 0.sp
     ),
     titleLarge = TextStyle(

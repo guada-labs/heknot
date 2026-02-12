@@ -71,7 +71,15 @@ class BackupManager(
                         reminderEnabled = b.reminderEnabled,
                         reminderTime = b.reminderTime?.let { LocalTime.parse(it) },
                         isDarkMode = b.isDarkMode,
-                        createdAt = LocalDate.parse(b.createdAt)
+                        createdAt = LocalDate.parse(b.createdAt),
+                        neckCm = b.neckCm,
+                        waistCm = b.waistCm,
+                        hipCm = b.hipCm,
+                        chestCm = b.chestCm,
+                        armCm = b.armCm,
+                        thighCm = b.thighCm,
+                        calfCm = b.calfCm,
+                        bodyFatPercentage = b.bodyFatPercentage
                     )
                 )
             }
@@ -80,7 +88,15 @@ class BackupManager(
                 repository.insertWeight(
                     WeightEntry(
                         weight = b.weight,
-                        dateTime = LocalDateTime.parse(b.dateTime)
+                        dateTime = LocalDateTime.parse(b.dateTime),
+                        neckCm = b.neckCm,
+                        waistCm = b.waistCm,
+                        hipCm = b.hipCm,
+                        chestCm = b.chestCm,
+                        armCm = b.armCm,
+                        thighCm = b.thighCm,
+                        calfCm = b.calfCm,
+                        note = b.note
                     )
                 )
             }

@@ -184,10 +184,36 @@ class HomeViewModel(
         }
     }
 
-    fun addWeight(weight: Float, dateTime: LocalDateTime) {
+    fun addWeight(
+        weight: Float, 
+        dateTime: LocalDateTime,
+        neck: Float? = null,
+        waist: Float? = null,
+        hip: Float? = null,
+        chest: Float? = null,
+        arm: Float? = null,
+        thigh: Float? = null,
+        calf: Float? = null
+    ) {
         viewModelScope.launch {
-            repository.insertWeight(WeightEntry(weight = weight, dateTime = dateTime))
+            repository.insertWeight(
+                WeightEntry(
+                    weight = weight, 
+                    dateTime = dateTime,
+                    neckCm = neck,
+                    waistCm = waist,
+                    hipCm = hip,
+                    chestCm = chest,
+                    armCm = arm,
+                    thighCm = thigh,
+                    calfCm = calf
+                )
+            )
             repository.updateCurrentWeight(weight)
+            if (neck != null || waist != null || hip != null || 
+                chest != null || arm != null || thigh != null || calf != null) {
+                repository.updateMeasurements(neck, waist, hip, chest, arm, thigh, calf)
+            }
         }
     }
     

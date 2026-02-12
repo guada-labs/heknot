@@ -22,6 +22,12 @@ data class UserProfile(
     val neckCm: Float? = null,
     val waistCm: Float? = null,
     val hipCm: Float? = null,
+    val chestCm: Float? = null,
+    val armCm: Float? = null,
+    val thighCm: Float? = null,
+    val calfCm: Float? = null,
+    
+    val bodyFatPercentage: Float? = null,
     
     // Preferences
     val preferredUnit: String = "kg", // "kg" or "lb"

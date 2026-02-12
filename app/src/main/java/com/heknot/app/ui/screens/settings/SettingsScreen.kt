@@ -2,6 +2,7 @@ package com.heknot.app.ui.screens.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,6 +22,7 @@ import com.heknot.app.ui.AppViewModelProvider
 @Composable
 fun SettingsScreen(
     onBack: (() -> Unit)? = null,
+    onNavigateToProfile: () -> Unit,
     onRestartApp: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
@@ -82,164 +85,185 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            
-            // --- Sección de Interfaz ---
-            Text(
-                text = "Personalización",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Tema de la aplicación",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+            // --- Sección de Usuario ---
+            SettingsCard(title = "Cuenta y Perfil") {
+                ListItem(
+                    headlineContent = { Text("Mi Perfil", fontWeight = FontWeight.SemiBold) },
+                    supportingContent = { Text("Nombre, edad, altura y medidas corporales") },
+                    leadingContent = { 
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.Person, 
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    },
+                    trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null) },
+                    modifier = Modifier.clickable { onNavigateToProfile() }
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // Opción: CLARO
-                    SegmentedButton(
-                        selected = isDarkMode == false,
-                        onClick = { viewModel.setDarkMode(false) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                        icon = { Icon(Icons.Default.LightMode, contentDescription = null) }
+            }
+
+            // --- Sección de Personalización ---
+            SettingsCard(title = "Personalización") {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Claro")
+                        Icon(
+                            Icons.Default.Palette, 
+                            contentDescription = null, 
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            "Tema de la aplicación",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
-                    
-                    // Opción: SISTEMA
-                    SegmentedButton(
-                        selected = isDarkMode == null,
-                        onClick = { viewModel.setDarkMode(null) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                        icon = { Icon(Icons.Default.BrightnessAuto, contentDescription = null) }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Auto")
-                    }
-                    
-                    // Opción: OSCURO
-                    SegmentedButton(
-                        selected = isDarkMode == true,
-                        onClick = { viewModel.setDarkMode(true) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                        icon = { Icon(Icons.Default.DarkMode, contentDescription = null) }
-                    ) {
-                        Text("Oscuro")
+                        SegmentedButton(
+                            selected = isDarkMode == false,
+                            onClick = { viewModel.setDarkMode(false) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
+                            icon = { Icon(Icons.Default.LightMode, contentDescription = null) }
+                        ) { Text("Claro") }
+                        
+                        SegmentedButton(
+                            selected = isDarkMode == null,
+                            onClick = { viewModel.setDarkMode(null) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
+                            icon = { Icon(Icons.Default.BrightnessAuto, contentDescription = null) }
+                        ) { Text("Auto") }
+                        
+                        SegmentedButton(
+                            selected = isDarkMode == true,
+                            onClick = { viewModel.setDarkMode(true) },
+                            shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
+                            icon = { Icon(Icons.Default.DarkMode, contentDescription = null) }
+                        ) { Text("Oscuro") }
                     }
                 }
+
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                val biometricEnabled by viewModel.biometricEnabled.collectAsState()
+                ListItem(
+                    headlineContent = { Text("Seguridad Biométrica", fontWeight = FontWeight.Medium) },
+                    supportingContent = { Text("Solicitar huella o rostro al abrir") },
+                    leadingContent = { Icon(Icons.Default.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = {
+                        Switch(
+                            checked = biometricEnabled,
+                            onCheckedChange = { viewModel.setBiometricEnabled(it) }
+                        )
+                    }
+                )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            val biometricEnabled by viewModel.biometricEnabled.collectAsState()
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+
+            // --- Sección de Backup ---
+            SettingsCard(title = "Datos y Privacidad") {
+                Text(
+                    text = "Gestiona tus datos localmente. No subimos nada a la nube por tu privacidad.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                ListItem(
+                    headlineContent = { Text("Exportar Datos") },
+                    supportingContent = { Text("Guarda una copia en formato JSON") },
+                    leadingContent = { Icon(Icons.Default.FileUpload, contentDescription = null) },
+                    modifier = Modifier.clickable(enabled = backupStatus !is BackupStatus.Loading) {
+                        exportLauncher.launch("heknot_backup_${System.currentTimeMillis()}.json")
+                    }
+                )
+
+                ListItem(
+                    headlineContent = { Text("Importar Datos") },
+                    supportingContent = { Text("Restaura desde un archivo previo") },
+                    leadingContent = { Icon(Icons.Default.FileDownload, contentDescription = null) },
+                    modifier = Modifier.clickable(enabled = backupStatus !is BackupStatus.Loading) {
+                        importLauncher.launch(arrayOf("application/json", "application/octet-stream"))
+                    }
+                )
+
+                if (backupStatus is BackupStatus.Loading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+            }
+
+            // --- Sección de Peligro ---
+            OutlinedCard(
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)),
+                border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.error.copy(alpha = 0.5f))),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Zona de Peligro",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Seguridad Biométrica",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        "Solicitar huella o rostro al abrir la app",
+                        "Eliminará permanentemente tu perfil y todos tus registros.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { viewModel.resetApp(onSuccess = onRestartApp) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text("Borrar Todo y Reiniciar")
+                    }
                 }
-                Switch(
-                    checked = biometricEnabled,
-                    onCheckedChange = { viewModel.setBiometricEnabled(it) }
-                )
             }
             
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
 
-            // --- Sección de Backup ---
-            Text(
-                text = "Copia de Seguridad (Privacidad)",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Exporta tus datos a un archivo JSON para tener una copia física fuera de la app.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = { exportLauncher.launch("heknot_Backup_${System.currentTimeMillis()}.json") },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = backupStatus !is BackupStatus.Loading
-            ) {
-                Icon(Icons.Default.FileUpload, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Exportar Datos (JSON)")
+@Composable
+fun SettingsCard(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+        )
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                content()
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = { importLauncher.launch(arrayOf("application/json", "application/octet-stream")) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = backupStatus !is BackupStatus.Loading
-            ) {
-                Icon(Icons.Default.FileDownload, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Importar Datos (JSON)")
-            }
-
-            if (backupStatus is BackupStatus.Loading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // --- Sección de Peligro ---
-            Text(
-                text = "Zona de Peligro",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.error
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Button(
-                onClick = { 
-                    viewModel.resetApp(onSuccess = onRestartApp)
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Default.Delete, contentDescription = null)
-                Spacer(modifier = Modifier.padding(8.dp))
-                Text("Borrar Todo y Reiniciar")
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Esto eliminará tu perfil, todos los registros de peso, ejercicios y comidas. No se puede deshacer.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

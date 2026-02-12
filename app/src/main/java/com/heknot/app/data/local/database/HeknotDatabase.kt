@@ -23,6 +23,11 @@ import com.heknot.app.data.local.database.entity.SleepLog
 import com.heknot.app.data.local.database.entity.UserProfile
 import com.heknot.app.data.local.database.entity.WaterLog
 import com.heknot.app.data.local.database.entity.WeightEntry
+import com.heknot.app.data.local.database.entity.UserEquipment
+import com.heknot.app.data.local.database.entity.WorkoutPlan
+import com.heknot.app.data.local.database.entity.WorkoutRoutine
+import com.heknot.app.data.local.database.entity.RoutineExercise
+import com.heknot.app.data.local.database.dao.TrainingDao
 import com.heknot.app.data.local.database.entity.WorkoutLog
 
 @Database(
@@ -36,9 +41,13 @@ import com.heknot.app.data.local.database.entity.WorkoutLog
         GuidedExercise::class,
         FoodItem::class,
         Recipe::class,
-        RecipeIngredient::class
+        RecipeIngredient::class,
+        UserEquipment::class,
+        WorkoutPlan::class,
+        WorkoutRoutine::class,
+        RoutineExercise::class
     ],
-    version = 13,
+    version = 16,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -53,6 +62,7 @@ abstract class HeknotDatabase : RoomDatabase() {
     abstract fun guidedExerciseDao(): GuidedExerciseDao
     abstract fun foodItemDao(): FoodItemDao
     abstract fun recipeDao(): RecipeDao
+    abstract fun trainingDao(): com.heknot.app.data.local.database.dao.TrainingDao
 
     companion object {
         @Volatile
@@ -71,12 +81,25 @@ abstract class HeknotDatabase : RoomDatabase() {
                     Migrations.MIGRATION_9_10,
                     Migrations.MIGRATION_10_11,
                     Migrations.MIGRATION_11_12,
-                    Migrations.MIGRATION_12_13
+                    Migrations.MIGRATION_12_13,
+                    Migrations.MIGRATION_13_14,
+                    Migrations.MIGRATION_14_15,
+                    Migrations.MIGRATION_15_16
                 )
+                .addCallback(DatabaseCallback(context))
                 .fallbackToDestructiveMigration() // Fallback if other migrations are missing
                 .build()
                 .also { Instance = it }
             }
+        }
+    }
+
+    private class DatabaseCallback(private val context: Context) : RoomDatabase.Callback() {
+        override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+            super.onCreate(db)
+            // Usamos un hilo separado o WorkManager para la pre-población real si es pesada.
+            // Para este caso sencillo, lo haremos via CoroutineScope en el Repositorio o una utilidad.
+            // Room recomienda no hacer operaciones pesadas en onCreate directamente bloqueando.
         }
     }
 }

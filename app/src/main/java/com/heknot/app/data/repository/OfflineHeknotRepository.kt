@@ -30,6 +30,16 @@ class OfflineHeknotRepository(private val database: HeknotDatabase) : HeknotRepo
     override suspend fun updateBiometricEnabled(enabled: Boolean): Int =
         database.userProfileDao().updateBiometricEnabled(enabled)
 
+    override suspend fun updateMeasurements(
+        neck: Float?, 
+        waist: Float?, 
+        hip: Float?,
+        chest: Float?,
+        arm: Float?,
+        thigh: Float?,
+        calf: Float?
+    ): Int = database.userProfileDao().updateMeasurements(neck, waist, hip, chest, arm, thigh, calf)
+
     // --- Weights ---
     override fun getAllWeights(): Flow<List<WeightEntry>> = 
         database.weightDao().getAllWeights()

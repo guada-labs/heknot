@@ -45,6 +45,11 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.fill
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
+import com.patrykandpatrick.vico.core.cartesian.Zoom
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +88,7 @@ fun ChartScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             
@@ -144,6 +150,7 @@ fun ChartScreen(
                                 label = rememberTextComponent(
                                     color = onSurfaceColor
                                 ),
+                                itemPlacer = VerticalAxis.ItemPlacer.step(),
                                 line = rememberLineComponent(fill = fill(onSurfaceColor.copy(alpha = 0.2f))),
                                 guideline = rememberLineComponent(fill = fill(onSurfaceColor.copy(alpha = 0.05f)))
                             ),
@@ -161,42 +168,53 @@ fun ChartScreen(
                             )
                         ),
                         modelProducer = viewModel.modelProducer,
+                        scrollState = rememberVicoScrollState(),
+                        zoomState = rememberVicoZoomState(initialZoom = Zoom.max(Zoom.fixed(), Zoom.Content)),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
                     )
                 }
-
-                uiState.estimatedDate?.let { date ->
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("✨", style = MaterialTheme.typography.headlineSmall)
-                            Spacer(modifier = Modifier.size(12.dp))
-                            Column {
-                                Text(
-                                    "Llegarás a tu meta el:",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                                Text(
-                                    text = date.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy")),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
-                        }
-                    }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Text(
+                    "Resumen Semanal",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                
+                // Secondary Stats Grid
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    StatCard(
+                        title = "Agua (Media)",
+                        value = "${uiState.weeklyWaterAvg}",
+                        params = "/ ${uiState.waterGoal} ml",
+                        isPositive = uiState.weeklyWaterAvg >= uiState.waterGoal * 0.8f,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.size(12.dp))
+                    StatCard(
+                        title = "Entrenamientos",
+                        value = "${uiState.workoutFrequency}",
+                        params = "sesiones",
+                        isPositive = uiState.workoutFrequency >= 3,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                StatCard(
+                    title = "Velocidad de Peso (7d)",
+                    value = (if (uiState.weightVelocity > 0) "+" else "") + String.format("%.2f", uiState.weightVelocity),
+                    params = "kg/semana",
+                    isPositive = uiState.weightVelocity <= 0,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

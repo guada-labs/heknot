@@ -13,7 +13,15 @@ sealed class Screen(val route: String, val label: String = "", val icon: ImageVe
     data object Settings : Screen("settings", "Ajustes", Icons.Default.Settings)
     data object Water : Screen("water", "Hidratación", Icons.Default.WaterDrop)
     data object History : Screen("history")
+    data object Profile : Screen("profile")
+    data object Equipment : Screen("equipment")
     
+    // Training/Workout Sub-screens
+    data object PlanCatalog : Screen("plan_catalog")
+    data object WorkoutDetail : Screen("workout_detail/{id}") {
+        fun createRoute(id: Long) = "workout_detail/$id"
+    }
+
     // Nutrition Sub-screens
     data object RecipeForm : Screen("recipe_form?id={id}") {
         fun createRoute(id: Long? = null) = if (id != null) "recipe_form?id=$id" else "recipe_form"

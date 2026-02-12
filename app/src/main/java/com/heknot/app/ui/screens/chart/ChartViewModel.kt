@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class ChartViewModel(
@@ -23,8 +24,10 @@ class ChartViewModel(
 
     val uiState: StateFlow<ChartUiState> = combine(
         repository.getAllWeights(),
-        repository.getUserProfile()
-    ) { weights, profile ->
+        repository.getUserProfile(),
+        repository.getAllWaterLogs(),
+        repository.getAllWorkouts()
+    ) { weights, profile, waterLogs, workouts ->
         val sortedWeights = weights.sortedBy { it.dateTime }
 
         if (sortedWeights.isNotEmpty()) {
@@ -60,23 +63,32 @@ class ChartViewModel(
                 }
             }
             
-            var estimatedDate: LocalDate? = null
-            if (sortedWeights.size >= 2) {
-                val first = sortedWeights.first()
-                val last = sortedWeights.last()
-                val days = ChronoUnit.DAYS.between(first.dateTime.toLocalDate(), last.dateTime.toLocalDate())
-                
-                if (days > 0) {
-                    val ratePerDay = (last.weight - first.weight) / days.toFloat()
-                    val toGoal = targetWeight - last.weight
-                    
-                    if ((toGoal > 0 && ratePerDay > 0) || (toGoal < 0 && ratePerDay < 0)) {
-                        val daysToGoal = (toGoal / ratePerDay).toLong()
-                        if (daysToGoal in 1..3650) {
-                            estimatedDate = last.dateTime.toLocalDate().plusDays(daysToGoal)
-                        }
-                    }
-                }
+            // Analytics for New Cards
+            val today = LocalDate.now()
+            val sevenDaysAgo = today.minusDays(7)
+            
+            // 1. Water Intake (Last 7 days avg)
+            val recentWater = waterLogs.filter { !it.dateTime.toLocalDate().isBefore(sevenDaysAgo) }
+            val dailyWater = recentWater.groupBy { it.dateTime.toLocalDate() }
+                .mapValues { entry -> entry.value.sumOf { it.amountMl } }
+            val weeklyWaterAvg = if (dailyWater.isNotEmpty()) dailyWater.values.average().toInt() else 0
+            
+            // 2. Workout Frequency (Total in last 7 days)
+            val recentWorkouts = workouts.filter { !it.dateTime.toLocalDate().isBefore(sevenDaysAgo) }
+            val workoutCount = recentWorkouts.size
+            
+            // 3. Weight Velocity (Change in last 7 days)
+            val weight7DaysAgo = sortedWeights.findLast { it.dateTime.toLocalDate().isBefore(sevenDaysAgo.plusDays(1)) }?.weight
+            val weightVelocity = if (weight7DaysAgo != null) currentWeight - weight7DaysAgo else 0f
+
+            // Simple projection for estimated completion date
+            val estimatedDate = if (weightVelocity < 0 && targetWeight < currentWeight) {
+                val weeklyLoss = -weightVelocity
+                val remainingWeight = currentWeight - targetWeight
+                val weeksToGoal = (remainingWeight / weeklyLoss).toLong()
+                today.plusWeeks(weeksToGoal)
+            } else {
+                profile?.targetDate
             }
 
             ChartUiState(
@@ -87,6 +99,10 @@ class ChartViewModel(
                 maxWeight = maxWeight,
                 targetWeight = targetWeight,
                 estimatedDate = estimatedDate,
+                weeklyWaterAvg = weeklyWaterAvg,
+                waterGoal = profile?.waterGoal ?: 2500,
+                workoutFrequency = workoutCount,
+                weightVelocity = weightVelocity,
                 isEmpty = false
             )
         } else {
@@ -108,6 +124,10 @@ data class ChartUiState(
     val minWeight: Float = 0f,
     val maxWeight: Float = 0f,
     val estimatedDate: LocalDate? = null,
+    val weeklyWaterAvg: Int = 0,
+    val waterGoal: Int = 2500,
+    val workoutFrequency: Int = 0,
+    val weightVelocity: Float = 0f,
     val isLoading: Boolean = false,
     val isEmpty: Boolean = false
 )

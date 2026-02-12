@@ -32,13 +32,32 @@ data class UserProfileBackup(
     val reminderEnabled: Boolean,
     val reminderTime: String?,
     val isDarkMode: Boolean?,
-    val createdAt: String
+    val createdAt: String,
+    
+    // Advanced fields (Optional)
+    val neckCm: Float? = null,
+    val waistCm: Float? = null,
+    val hipCm: Float? = null,
+    val chestCm: Float? = null,
+    val armCm: Float? = null,
+    val thighCm: Float? = null,
+    val calfCm: Float? = null,
+    val bodyFatPercentage: Float? = null
 )
 
 @Serializable
 data class WeightEntryBackup(
     val weight: Float,
-    val dateTime: String
+    val dateTime: String,
+    // Body measurements
+    val neckCm: Float? = null,
+    val waistCm: Float? = null,
+    val hipCm: Float? = null,
+    val chestCm: Float? = null,
+    val armCm: Float? = null,
+    val thighCm: Float? = null,
+    val calfCm: Float? = null,
+    val note: String? = null
 )
 
 @Serializable
@@ -69,12 +88,28 @@ fun UserProfile.toBackup() = UserProfileBackup(
     reminderEnabled = reminderEnabled,
     reminderTime = reminderTime?.toString(),
     isDarkMode = isDarkMode,
-    createdAt = createdAt.toString()
+    createdAt = createdAt.toString(),
+    neckCm = neckCm,
+    waistCm = waistCm,
+    hipCm = hipCm,
+    chestCm = chestCm,
+    armCm = armCm,
+    thighCm = thighCm,
+    calfCm = calfCm,
+    bodyFatPercentage = bodyFatPercentage
 )
 
 fun WeightEntry.toBackup() = WeightEntryBackup(
     weight = weight,
-    dateTime = dateTime.toString()
+    dateTime = dateTime.toString(),
+    neckCm = neckCm,
+    waistCm = waistCm,
+    hipCm = hipCm,
+    chestCm = chestCm,
+    armCm = armCm,
+    thighCm = thighCm,
+    calfCm = calfCm,
+    note = note
 )
 
 fun WorkoutLog.toBackup() = WorkoutLogBackup(
